@@ -1,0 +1,23 @@
+KBase DataImporter v0.9
+
+To run open
+
+uploader.html
+
+in a browser. Configuration variables are set in 
+
+js/config.js
+
+Pipeline definition files must be placed in the data directory. They must be named
+
+$pipeline_name.json
+
+and $pipeline_name must be included into the list in the config.js file.
+
+More documentation is available here
+
+https://docs.google.com/document/d/1xnab7vsPZsjTehR9f4qvdLaLP623RZ3zB3VomCy7Dj4/edit?usp=sharing
+
+Documentation on metadata templates is available here
+
+https://docs.google.com/document/d/1u4agYSSK7hrn-eOLk7GvNjxb8et_cu0dWEhVB_iq4lI/edit?usp=sharing
