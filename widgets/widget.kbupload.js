@@ -246,12 +246,13 @@ The time between submission and a resulting data object in the workspace may tak
 
 	// initialize the html in case there is no template
 	var html = "<table style='margin-bottom: 5px;'><tr><td class='section'><h4>Not Implemented</h4><p>This submission type has not yet been implemented.</p></td></tr></table>";
+	var templateName = sel.options[sel.selectedIndex].text;
 
 	// if there is a template, use it to fill the html
-	if (widget.templates.hasOwnProperty(sel.options[sel.selectedIndex].text)) {
+	if (widget.templates.hasOwnProperty(templateName)) {
 
 	    // get the interface part of the template
-	    var iT = widget.templates[sel.options[sel.selectedIndex].text]["interface"];
+	    var iT = widget.templates[templateName]["interface"];
 
 	    // set title and text
 	    html = "<table style='margin-bottom: 5px;'><tr><td class='section'><h4>"+iT.intro.title+"</h4><p>"+iT.intro.text+"</p></td>";
@@ -260,13 +261,13 @@ The time between submission and a resulting data object in the workspace may tak
 	    if (iT.intro.excel || iT.intro.json) {
 		html += "<td style='width: 200px;'>";
 		if (iT.intro.json) {
-		    html += "<button class='btn' style='width: 190px; margin-bottom: 5px;' onclick='Retina.WidgetInstances.kbupload[1].jsonTemplate(\"metagenome\");'>download JSON template</button>";
+		    html += "<button class='btn' style='width: 190px; margin-bottom: 5px;' onclick='Retina.WidgetInstances.kbupload[1].jsonTemplate(\"" + templateName + "\");'>download JSON template</button>";
 		}
 		if (iT.intro.json && iT.intro.excel) {
 		    html += "<br>";
 		}
 		if (iT.intro.excel) {
-		    html += "<button class='btn' style='width: 190px; margin-bottom: 5px;' onclick='Retina.WidgetInstances.kbupload[1].xlsInit(\"metagenome\");'>download Excel template</button>";
+		    html += "<button class='btn' style='width: 190px; margin-bottom: 5px;' onclick='Retina.WidgetInstances.kbupload[1].xlsInit(\"" + templateName + "\");'>download Excel template</button>";
 		}
 		html += "</td>";
 	    }
@@ -680,7 +681,7 @@ The time between submission and a resulting data object in the workspace may tak
 /* TESTING */
 
 	// perform the submission
-	var url = RetinaConfig.awe +"/job";
+	var url = RetinaConfig.awe.url +"/job";
 	var aFile = [ JSON.stringify(aweTemplate) ];
 	var oMyBlob = new Blob(aFile, { "type" : "text\/json" });
 	var fd = new FormData();
@@ -691,7 +692,7 @@ The time between submission and a resulting data object in the workspace may tak
 	    data: fd,
 	    success: function(data) {
 		// the submission succeeded, query the current status and feed back to the user
-		jQuery.ajax(RetinaConfig.awe+"/job/"+data.data.id, { success: function(data) {
+		jQuery.ajax(RetinaConfig.awe.url+"/job/"+data.data.id, { success: function(data) {
 		    alert('Your submission is complete. The current status is '+data.data.state);
 		    Retina.WidgetInstances.kbupload[1].updateInbox();
 		}});
@@ -830,7 +831,7 @@ The time between submission and a resulting data object in the workspace may tak
 	SHOCK.get_all_nodes(Retina.WidgetInstances.kbupload[1].showShockResult,"?query&type=inbox&user="+Retina.WidgetInstances.kbupload[1].user);
 	
 	// get the pipeline status information from AWE and call the showAWEResult function
-	jQuery.get(RetinaConfig.awe+"/job?query&info.user="+widget.user+"&info.project=data-importer", function (data) {
+	jQuery.get(RetinaConfig.awe.url+"/job?query&info.user="+widget.user+"&info.project=data-importer", function (data) {
 	    Retina.WidgetInstances.kbupload[1].showAWEResult(data);
 	});
     };

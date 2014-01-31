@@ -5,7 +5,7 @@ var RetinaConfig = {
 	     "project": "data-importer",
 	     "clientgroups": "kbwolfgang"
 	   },
-    "workspace": "http://kbase.us/services/ws/",
+    "workspace": "https://kbase.us/services/ws/",
     "authURL": "https://kbase.us/services/authorization/Sessions/Login/",
     "templates": [ "genome", "metagenome" ]
 };
