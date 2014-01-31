@@ -59,9 +59,6 @@
 
 	// initialize the staging area
 	widget.inboxDisplay(document.getElementById('inboxSection'));
-
-	// initialize the submission area
-	widget.submissionDisplay(document.getElementById('submissionSection'));
     };
 
     /*
@@ -186,22 +183,32 @@
 	var html = '\
 <legend>Step 2: Perform Submission</legend>\
 <p style="float: left; padding-top: 5px; margin-right: 10px;">select type</p>\
-<select id="subtype" name="subtype" onchange="Retina.WidgetInstances.kbupload[1].showSubtype(this);" style="float: left;">\
-  <option selected value="TestData">genome</option>\
-  <option value="TestData">metagenome</option>\
-  <option value="TestData">amplicon data set</option>\
-  <option value="TestData">metatranscriptome</option>\
-  <option value="TestData">re-sequencing</option>\
-  <option value="TestData">rna-seq transcriptome</option>\
-  <option value="TestData">GWAS</option>\
-  <option value="TestData">PPI Network</option>\
-  <option value="TestData">co expression network</option>\
-  <option value="TestData">co fitness</option>\
-  <option value="TestData">regulatory network</option>\
-  <option value="TestData">metabolic subsystem</option>\
-  <option value="TestData">multidata int. network</option>\
-  <option value="TestData">other network</option>\
-</select>\
+<select id="subtype" name="subtype" onchange="Retina.WidgetInstances.kbupload[1].showSubtype(this);" style="float: left;">';
+	for (var i in widget.templates) {
+	    if (widget.templates.hasOwnProperty(i)) {
+		html += '<option selected value="TestData">'+i+'</option>';
+	    }
+	}
+	var others = [ "amplicon data set",
+		       "metatranscriptome",
+		       "re-sequencing",
+		       "rna-seq transcriptome",
+		       "GWAS",
+		       "PPI Network",
+		       "co expression network",
+		       "co fitness",
+		       "regulatory network",
+		       "metabolic subsystem",
+		       "multidata int network",
+		       "other network" ];
+
+	for (var i=0; i<others.length; i++) {
+	    if (! widget.templates.hasOwnProperty(others[i])) {
+		html += '<option selected value="TestData">'+others[i]+'</option>';
+	    }
+	}
+
+	html += '</select>\
 <div id="subtype_description" style="margin-left: 20px; width: 700px;clear: both;"></div>\
 <div class="alert alert-info" style="margin-top: 20px;width: 562px;">\
 <b>Note:</b>\
@@ -211,8 +218,12 @@ The time between submission and a resulting data object in the workspace may tak
 	intro.innerHTML = html;
 	target.appendChild(intro);
 
+	// select the first entry
+	var sel = document.getElementById('subtype');
+	sel.selectedIndex = 0;
+
 	// the input mask for the selected pipeline is rendered in this function
-	widget.showSubtype(document.getElementById('subtype'));
+	widget.showSubtype(sel);
     };
 
     /*
@@ -750,34 +761,38 @@ The time between submission and a resulting data object in the workspace may tak
 	    // get the DOM element that holds the workspace selection
 	    var sel = document.getElementById('workspaceSelector');
 
-	    // add the event listener to hide the name input unless 'create new' is selected
-	    sel.addEventListener('change', function() {
-		if (this.options[this.selectedIndex].value == "new") {
+	    if (sel) {
+		
+		// add the event listener to hide the name input unless 'create new' is selected
+		sel.addEventListener('change', function() {
+		    if (this.options[this.selectedIndex].value == "new") {
+			document.getElementById('newWorkspaceName').style.display = "";
+		    } else {
+			document.getElementById('newWorkspaceName').style.display = "none";
+		    }
+		});
+		
+
+		// create the options for the workspace selector
+		var opts = "";
+		for (var i=0;i<data.length;i++) {
+
+		    // if a new workspace has just been created, it is selected
+		    var isSelected = "";
+		    if (Retina.WidgetInstances.kbupload[1].newWorkspaceName && Retina.WidgetInstances.kbupload[1].newWorkspaceName == data[i][0]) {
+			isSelected = " selected";
+		    }
+		    opts += "<option"+isSelected+">"+data[i][0]+"</option>";
+		}
+		opts += "<option value='new'>- create new -</option>";
+		
+		// fill the select box with the options
+		sel.innerHTML = opts;
+		
+		// if there is only one entry, the user has no workspaces yet, show the workspace name input
+		if (sel.options.length == 1) {
 		    document.getElementById('newWorkspaceName').style.display = "";
-		} else {
-		    document.getElementById('newWorkspaceName').style.display = "none";
 		}
-	    });
-
-	    // create the options for the workspace selector
-	    var opts = "";
-	    for (var i=0;i<data.length;i++) {
-
-		// if a new workspace has just been created, it is selected
-		var isSelected = "";
-		if (Retina.WidgetInstances.kbupload[1].newWorkspaceName && Retina.WidgetInstances.kbupload[1].newWorkspaceName == data[i][0]) {
-		    isSelected = " selected";
-		}
-		opts += "<option"+isSelected+">"+data[i][0]+"</option>";
-	    }
-	    opts += "<option value='new'>- create new -</option>";
-	    
-	    // fill the select box with the options
-	    sel.innerHTML = opts;
-	    
-	    // if there is only one entry, the user has no workspaces yet, show the workspace name input
-	    if (sel.options.length == 1) {
-		document.getElementById('newWorkspaceName').style.display = "";
 	    }
 	});
     };
@@ -999,21 +1014,33 @@ The time between submission and a resulting data object in the workspace may tak
 
     // load the metadata template from disc and store them in the widget
     widget.loadTemplates = function () {
+	widget = Retina.WidgetInstances.kbupload[1];
+
 	var templateNames = RetinaConfig.templates;
+	var promises = [];
 	for (var i=0;i<templateNames.length;i++) {
-	    jQuery.ajax("data/"+templateNames[i]+".json", { method: "GET",
-							    dataType: "text",
-							    beforeSend: function( xhr ) {
-								xhr.tname = templateNames[i];
-							    },
-							    success: function(data,status,jqXHR) {
-								Retina.WidgetInstances.kbupload[1].templates[jqXHR.tname] = JSON.parse(data);
-								if (document.getElementById('subtype')) {
-								    Retina.WidgetInstances.kbupload[1].showSubtype(document.getElementById('subtype'));
-								}
-							    }
-							  });
+	    promises.push( jQuery.ajax("data/"+templateNames[i]+".json", { method: "GET",
+									   dataType: "text",
+									   beforeSend: function( xhr ) {
+									       xhr.tname = templateNames[i];
+									   },
+									   success: function(data,status,jqXHR) {
+									       var niceName = jqXHR.tname;
+									       niceName = niceName.replace(/_/g, " ");
+									       Retina.WidgetInstances.kbupload[1].templates[niceName] = JSON.parse(data);
+									       if (document.getElementById('subtype')) {
+										   Retina.WidgetInstances.kbupload[1].showSubtype(document.getElementById('subtype'));
+									       }
+									   }
+									 }) );
 	}
+	
+	// when all templates are loaded, create the submission area
+	jQuery.when.apply(this, promises).then(function() {
+
+	    // initialize the submission area
+	    Retina.WidgetInstances.kbupload[1].submissionDisplay(document.getElementById('submissionSection'));
+	});
     };
 
     /*
