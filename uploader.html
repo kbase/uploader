@@ -1,0 +1,78 @@
+<!DOCTYPE HTML>
+<html>
+  <head>
+    <meta http-equiv="content-type" content="text/html; charset=UTF-8">
+    <title>KBase :: Data Importer</title>
+	<script src="js/jquery.min.js"></script>
+	<script src="js/bootstrap.min.js"></script>
+	<script src="js/config.js"></script>
+	<script src="js/stm.js"></script>
+	<script src="js/retina.js"></script>
+	<link rel="stylesheet" type="text/css" href="css/bootstrap.min.css">
+	<link rel="stylesheet" type="text/css" href="css/kbase.css">
+	<link rel="icon" href="images/KBase_favicon.ico" type="image/x-icon">
+	<script>
+    Retina.init( { library_resource: "js/" } ).then( function() {
+	Retina.add_widget({"name": "kbupload", "resource": "widgets/",  "filename": "widget.kbupload.js"});
+	Retina.add_widget({"name": "login", "resource": "widgets/",  "filename": "widget.login.js"});
+	Retina.add_widget({"name": "template_validator", "resource": "widgets/",  "filename": "widget.template_validator.js"});
+	Retina.load_widget("kbupload").then( function() {
+	    Retina.Widget.create("kbupload", {"target": document.getElementById("content")});
+	    Retina.load_widget("login").then( function() {
+		Retina.Widget.create("login", {"target": document.getElementById("login_space"), "callback": function(){
+		    if (this.hasOwnProperty('result') && this.result == 'success') {
+			Retina.WidgetInstances.kbupload[1].user = this.uname;
+			SHOCK.set_auth(this.token);
+			Retina.WidgetInstances.kbupload[1].authenticated(true, this.token);
+		    } else {
+			SHOCK.auth_header = {};
+			Retina.WidgetInstances.kbupload[1].authenticated(false);
+		    }
+		}});
+	    });
+	});
+	Retina.load_widget("template_validator").then( function() {
+	    Retina.Widget.create("template_validator", {});
+	});
+    });
+	</script>
+  </head>
+  
+
+  <body>
+
+    <div class="container">
+      <div class="header">
+	<img src="images/labs_icon.png" style="float: left;"><p class="pagetitle">Data Importer</p><p style="float: right;" id="login_space"></p>
+      </div>
+    </div>
+
+    <div class="container">
+      <div class="content section" id="content">
+      </div>
+    </div>
+
+    <div class="footer">
+      <div class="container">
+	<div class="footer-column">
+	  <a href="https://gologin.kbase.us/SignUp">Sign up for a KBase account</a>
+	</div>
+	<div class="footer-column">
+	  <a href="http://kbase.science.energy.gov/about/acknowledgements/">Acknowledgements</a>
+	</div>
+	<div class="footer-column">
+	  <p>
+	    KBase is sponsored by the <a href="http://science.energy.gov/ber/ ">U.S. Department of Energy's Office of Biological and Environmental Research</a>
+	  </p>
+	  <p>
+	    <img width="140" height="28" alt="U.S. Department of Energy -- Office of Science" src="images/doe_sc_logo.png">
+	  </p>
+	</div>
+      </div>
+    </div>
+
+  </body>
+</html>
+
+
+

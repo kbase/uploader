@@ -1,0 +1,1099 @@
+(function () {
+    // make this a Retina widget
+    widget = Retina.Widget.extend({
+        about: {
+            title: "KBase Data Importer",
+            name: "kbupload",
+	    version: 1,
+            author: "Tobias Paczian",
+	    // Requires are:
+	    // AuxStore - SHOCK interface library
+	    // Client.js - Workspace interface library
+	    // xlsx - Excel parser / generator
+	    // jszip - ZIP library required for Excel parser
+            requires: [ 'AuxStore.js', 'Client.js', 'xlsx.js', 'jszip.min.js' ]
+        }
+    });
+
+    // load required renderers, currently listselect only
+    widget.setup = function () {
+	return [ Retina.add_renderer({"name": "listselect", "resource": "renderers/",  "filename": "renderer.listselect.js" }),
+		 Retina.load_renderer("listselect") ];
+    }
+
+    // global vars
+    widget.auth = false;
+    widget.user = null;
+    widget.token = null;
+    widget.newWorkspaceName = "";
+    widget.sequenceFiles = [];
+    widget.templates = {};
+    widget.allowedFileEndings = [ "fna", "fas", "fasta", "sff", "fastq", "txt", "xlsx", "json" ];
+
+    // initial display
+    widget.display = function (params) {
+	widget = Retina.WidgetInstances.kbupload[1];
+
+	// set SHOCK url to data in config.js
+	SHOCK.url = RetinaConfig.shock;
+
+	// load all JSON template files defined in config.js
+	widget.loadTemplates();
+
+	// initialize a storage spot in the DataStore for the awe jobs
+	stm.DataStore.awejobs = {};
+
+	// set the target DOM element from the params
+	var target = params.target;
+
+	// introductory text, always displayed
+	var introSection = "<h4>Overview</h4><p style='margin-top: 10px;'>The KBase Data Importer allows the creation of KBase typed objects for further analysis. The process of creating a typed object typically involves adding data about the data (metadata). We support a number of community standards to import metadata.</p>\
+<p>The typed objects will be placed in a workspace of your choice.</p>\
+<p>Please note the you will not be able to download data uploaded to KBase until it is validated and processed. Finally you can proceed with the creation of a typed Workspace object.</p>";
+
+	// text displayed when no user is logged in
+	var unauthorized = "<legend>Login required</legend><p>You must log in at the top right of the screen before you can use the data uploader.</p>";
+		
+	// put intro html into the target DOM element
+	target.innerHTML = introSection + "<div id='unauthorized_section'>"+unauthorized + "</div><div id='authorized_section' class='blocks' style='display: none;'><div id='templateSection'></div><div id='uploadSection'></div><div id='inboxSection'></div><div id='submissionSection'></div><div id='pipelineSection'></div></div>";
+
+	// initialize the staging area
+	widget.inboxDisplay(document.getElementById('inboxSection'));
+
+	// initialize the submission area
+	widget.submissionDisplay(document.getElementById('submissionSection'));
+    };
+
+    /*
+     * DISPLAYS
+     */
+
+    // staging area
+    widget.inboxDisplay = function (target) {
+	widget = Retina.WidgetInstances.kbupload[1];
+
+	// create a div for the intro HTML
+	var intro = document.createElement('div');
+	var html = '<legend>Step 1: Manage Staging Files</legend>';
+	intro.innerHTML = html;
+	target.appendChild(intro);
+
+	// create the progress display and make it invisible
+	var progress = document.createElement('div');
+	progress.setAttribute('class', "alert alert-block alert-info");
+	progress.setAttribute('style', "width: 400px; display: none; z-index: 100000");
+	progress.innerHTML = "<p>initializing upload...</p>";
+	widget.progress = progress;
+	target.appendChild(progress);
+	
+	// create a file dialog
+	var fu = document.createElement('div');
+	target.appendChild(fu);
+	
+	// hide the original button
+	var fuDialog = widget.fu = document.createElement('input');
+	fuDialog.setAttribute('type', 'file');
+	fuDialog.setAttribute('style', 'display:none;');
+
+	// handle the change event
+	fuDialog.addEventListener('change', function(event){
+	    
+	    // get the selected file name and make sure it matches one of the allowed file endings
+	    var fn = event.target.files[0].name;
+	    var allowed = false;
+	    for (var i=0;i<Retina.WidgetInstances.kbupload[1].allowedFileEndings.length; i++) {
+		if (fn.match(new RegExp("\."+Retina.WidgetInstances.kbupload[1].allowedFileEndings[i]+"$"))) {
+		    allowed = true;
+		    break;
+		}
+	    }
+
+	    // if the file type is allowed, commence the upload
+	    if (allowed) {
+		var progress = widget.progress;
+		progress.style.display = "";
+		progress.innerHTML = "";
+		var closeButton = document.createElement('button');
+		closeButton.setAttribute('class', 'close');
+		closeButton.setAttribute('type', 'button');
+		closeButton.setAttribute('data-dismiss', 'alert');
+		progress.appendChild(closeButton);
+		var fileName = document.createElement('p');
+		fileName.innerHTML = 'uploading '+fuDialog.files[0].name;
+		progress.appendChild(fileName);
+		var progressBox = document.createElement('p');
+		progressBox.setAttribute('style', 'margin-bottom: 5px;');
+		widget.progressCurrent = document.createElement('span');
+		widget.progressCurrent.innerHTML = 0;
+		progressBox.appendChild(widget.progressCurrent);
+		var progressTotal = document.createElement('span');
+		progressTotal.innerHTML = ' of '+stm.prettySize(fuDialog.files[0].size)+' complete';
+		progressBox.appendChild(progressTotal);
+		progress.appendChild(progressBox);
+		var pBar = document.createElement('div');
+		pBar.setAttribute('class', 'progress');
+		widget.pBarInner = document.createElement('div');
+		widget.pBarInner.setAttribute('class', 'bar');
+		widget.pBarInner.setAttribute('style', 'width: 0%;');
+		pBar.appendChild(widget.pBarInner);
+		progress.appendChild(pBar);
+		
+		// issue the SHOCK upload command on this file upload dialog, set the progress function callback
+		// to onProgress and the completion callback to uploadComplete (both functions within this widget
+		SHOCK.upload(fuDialog, null, null, widget.uploadComplete, widget.onProgress).then( function() {
+		    widget.progress.style.display = "none";
+		});
+	    } else {
+		
+		// inform the user that the selected filetype is not allowed
+		alert("The selected filetype is not allowed.\nValid filetypes are:\n*."+Retina.WidgetInstances.kbupload[1].allowedFileEndings.join(", *."));
+	    }
+	});
+	fu.appendChild(fuDialog);
+	
+	// create a fake button that clicks the real button when pressed
+	// this is because the styles of the original button cannot be modified
+	// due to browser security restrictions
+	var fakeButton = document.createElement('button');
+	fakeButton.setAttribute('class', 'btn');
+	fakeButton.innerHTML = "upload file to stage";
+	fakeButton.addEventListener('click', function() {
+	    fuDialog.click();
+	});
+	fu.appendChild(fakeButton);
+	fu.setAttribute('style', "margin-bottom: 25px;");
+	
+	// create a select box that holds the files within the staging area
+	// the onChange event will trigger the showFileOptions function, so the
+	// file information and action buttons can be displayed
+	// the select box is initially empty and filled by the updateInbox function
+	var inb = document.createElement('div');
+	var result = '<div><select id="shock_result" multiple size=10 onchange="Retina.WidgetInstances.kbupload[1].showFileOptions(this.options[this.selectedIndex].value);" style="width: 400px;"></select><div id="fileOptions" style="float: right;width: 500px;"></div></div>';
+	inb.innerHTML = result;
+	target.appendChild(inb);
+    };
+
+    // the submission area
+    widget.submissionDisplay = function (target) {
+	widget = Retina.WidgetInstances.kbupload[1];
+
+	// the intro div holds the pipeline selection
+	// currently its contents are hardcoded, in future this will be filled from the
+	// pipeline structure files
+	// the onChange event triggers the showSubtype function which will change the input mask for the user.
+	// currently this only changes the text, in future this will also change the input elements
+	var intro = document.createElement('div');
+	var html = '\
+<legend>Step 2: Perform Submission</legend>\
+<p style="float: left; padding-top: 5px; margin-right: 10px;">select type</p>\
+<select id="subtype" name="subtype" onchange="Retina.WidgetInstances.kbupload[1].showSubtype(this);" style="float: left;">\
+  <option selected value="TestData">genome</option>\
+  <option value="TestData">metagenome</option>\
+  <option value="TestData">amplicon data set</option>\
+  <option value="TestData">metatranscriptome</option>\
+  <option value="TestData">re-sequencing</option>\
+  <option value="TestData">rna-seq transcriptome</option>\
+  <option value="TestData">GWAS</option>\
+  <option value="TestData">PPI Network</option>\
+  <option value="TestData">co expression network</option>\
+  <option value="TestData">co fitness</option>\
+  <option value="TestData">regulatory network</option>\
+  <option value="TestData">metabolic subsystem</option>\
+  <option value="TestData">multidata int. network</option>\
+  <option value="TestData">other network</option>\
+</select>\
+<div id="subtype_description" style="margin-left: 20px; width: 700px;clear: both;"></div>\
+<div class="alert alert-info" style="margin-top: 20px;width: 562px;">\
+<b>Note:</b>\
+The time between submission and a resulting data object in the workspace may take some time depending on the selected pipeline. In some cases, like the Microbial Communities pipeline, this might be several days.\
+</div>';
+
+	intro.innerHTML = html;
+	target.appendChild(intro);
+
+	// the input mask for the selected pipeline is rendered in this function
+	widget.showSubtype(document.getElementById('subtype'));
+    };
+
+    /*
+     * SHOWS
+     */
+
+    // render the intro text for the currently selected pipeline
+    // currently only renders the intro text and the data is hardcoded here
+    // in future this data will be loaded from the pipeline structure files and include
+    // the input elements
+    widget.showSubtype = function (sel) {
+	widget = Retina.WidgetInstances.kbupload[1];
+
+	// get the target DOM element
+	var result = document.getElementById('subtype_description');
+
+	// store potential list selects
+	var listSelects = widget.listSelects = {};
+	Retina.RendererInstances.listselect = [ Retina.RendererInstances.listselect[0] ];
+
+	// initialize the html in case there is no template
+	var html = "<table style='margin-bottom: 5px;'><tr><td class='section'><h4>Not Implemented</h4><p>This submission type has not yet been implemented.</p></td></tr></table>";
+
+	// if there is a template, use it to fill the html
+	if (widget.templates.hasOwnProperty(sel.options[sel.selectedIndex].text)) {
+
+	    // get the interface part of the template
+	    var iT = widget.templates[sel.options[sel.selectedIndex].text]["interface"];
+
+	    // set title and text
+	    html = "<table style='margin-bottom: 5px;'><tr><td class='section'><h4>"+iT.intro.title+"</h4><p>"+iT.intro.text+"</p></td>";
+
+	    // add metadata buttons if requested
+	    if (iT.intro.excel || iT.intro.json) {
+		html += "<td style='width: 200px;'>";
+		if (iT.intro.json) {
+		    html += "<button class='btn' style='width: 190px; margin-bottom: 5px;' onclick='Retina.WidgetInstances.kbupload[1].jsonTemplate(\"metagenome\");'>download JSON template</button>";
+		}
+		if (iT.intro.json && iT.intro.excel) {
+		    html += "<br>";
+		}
+		if (iT.intro.excel) {
+		    html += "<button class='btn' style='width: 190px; margin-bottom: 5px;' onclick='Retina.WidgetInstances.kbupload[1].xlsInit(\"metagenome\");'>download Excel template</button>";
+		}
+		html += "</td>";
+	    }
+
+	    // close the info section, start the input section
+	    html += '</tr><tr><td colspan=2><h4>required data</h4></td></tr></table><div><fieldset><label>select target workspace</label>\
+    <select id="workspaceSelector"></select>\
+    <div id="newWorkspaceName" style="display: none;">\
+      <p>new workspace name</p>\
+      <div class="input-append">\
+        <input type="text" id="newWorkspaceNameField" onkeypress="if(event.keyCode==\'13\'){this.nextSibling.click();}">\
+        <button class="btn" onclick="Retina.WidgetInstances.kbupload[1].createNewWorkspace();">create</button>\
+      </div>\
+    </div>\
+';
+
+	    // iterate over the inputs
+	    for (var i=0; i<iT.inputs.length; i++) {
+		if (iT.inputs[i].type == "text") {
+		    html += "<label>"+iT.inputs[i].label +"</label>";
+		    html += "<input type='text' id='submissionField"+iT.inputs[i].aweVariable+"' value='"+iT.inputs[i]["default"]+"'>";
+		} else if(iT.inputs[i].type == "checkbox") {
+		    html += "<label class='checkbox'>";
+		    var checked = "";
+		    if (iT.inputs[i]["default"]) {
+			checked = "checked ";
+		    }
+		    html += '<input type="checkbox" '+checked+'id="submissionField'+iT.inputs[i].aweVariable+'"> '+iT.inputs[i].label;
+		    html += '</label>';
+		} else if (iT.inputs[i].type == "multiselect") {
+		    listSelects[i] = Retina.Renderer.create("listselect", { multiple: true,
+									    no_button: true,
+									    value: "id",
+									    filter: ["name"],
+									    no_filter: true,
+									    select_id: "submissionField"+iT.inputs[i].aweVariable });
+		    html += "<div id='submissionFieldDiv"+iT.inputs[i].aweVariable+"'>";
+		} else if (iT.inputs[i].type == "radio") {
+		    html += "<label>"+iT.inputs[i].label +"</label>";
+		    for (var h=0; h<iT.inputs[i].data.length; h++) {
+			var checked = "";
+			if (h == iT.inputs[i]["default"]) {
+			    checked = "checked ";
+			}
+			html += "<input type='radio' "+checked+"name='submissionField"+iT.inputs[i].aweVariable+"' value='"+iT.inputs[i].data[h].value+"'>";
+		    }
+		} else if (iT.inputs[i].type == "dropdown") {
+		    html += "<label>"+iT.inputs[i].label +'</label><select id="submissionField'+iT.inputs[i].aweVariable+'">';
+		    if (iT.inputs[i].data) {
+			for (var h=0; h<iT.inputs[i].data.length; h++) {
+			    var selected = "";
+			    if (h == iT.inputs[i]["default"]) {
+				selected = "selected ";
+			    }
+			    html += "<option "+selected+" value='"+iT.inputs[i].data[h].value+"'>"+iT.inputs[i].data[h].label+"</option>";
+			}
+		    }
+		    html += "</select>";
+		}
+
+		if (iT.inputs[i].help) {
+		    html += "<span class='help-block'>"+iT.inputs[i].help+"</span>";
+		}
+	    }
+
+	    html += '</fieldset><button type="submit" class="btn" onclick="Retina.WidgetInstances.kbupload[1].validateSlots();" style="margin-top: 10px;">submit</button></div>';
+	}
+
+	// set the content of the target DOM element to the generated HTML
+	result.innerHTML = html;
+
+	// call the function to update fields fed by files
+	widget.updateFileFields();
+	if (document.getElementById('workspaceSelector')) {
+	    widget.getWorkspaces(1);
+	}
+    };
+
+    // retrieves the staging area files for the current user from SHOCK
+    widget.showShockResult = function (data) {
+	widget = Retina.WidgetInstances.kbupload[1];
+
+	// hashify the array result so we can better store it in the DataStore
+	var dataHash = {};
+	
+	// store staging area files
+	var selectOptions = "";
+
+	// iterate over the result data
+	for (var i=0;i<data.length;i++) {
+	    // store every file data in DataStore
+	    dataHash[data[i].id] = data[i];
+
+	    // create an option for the staging file box
+	    if(data[i].attributes.hasOwnProperty('name')) {
+		selectOptions += "<option value='"+data[i].id+"'>"+data[i].attributes.name+"</option>";
+	    }
+	}
+
+	// store the file data in the DataStore
+	stm.DataStore.inbox = dataHash;
+
+	// fill the staging area select box
+	document.getElementById('shock_result').innerHTML = selectOptions;
+	
+	// update all file fields
+	widget.updateFileFields();
+    };
+
+    // retrieves the pipeline stati for the current user from AWE
+    widget.showAWEResult = function (data) {
+	widget = Retina.WidgetInstances.kbupload[1];
+
+	var target = document.getElementById('pipelineSection');
+
+	var html = "<legend>Submission Status</legend>";
+	
+	var subs = [];
+	for (var i=0;i<data.data.length;i++) {
+	    var item = data.data[i];
+	    if (item.remaintasks > 0) {
+		if (item.state != "deleted") {
+		    var currtask = item.tasks[item.tasks.length - item.remaintasks];
+		    var numtasks = item.tasks.length;
+		    subs.push([ item.info.name, Retina.WidgetInstances.kbupload[1].dots(item.tasks), item.info.submittime, "-"]);
+		}
+	    } else {
+		var laststate = item.tasks[item.tasks.length - 1].state;
+		if (laststate != "deleted") {
+		    subs.push([ item.info.name, Retina.WidgetInstances.kbupload[1].dots(item.tasks), item.info.submittime, (laststate == "completed") ? item.info.completedtime : "-"]);
+		}
+	    }
+	}
+	if (subs.length) {
+	    var columns = ["submission type", "status", "submission time", "completion time"];
+	    html += "<table class='table table-hover'>";
+	    html += "<thead><tr><th>"+columns.join("</th><th>")+"</th></tr></thead><tbody>";
+	    for (var i=0;i<subs.length;i++) {
+		html += "<tr><td>"+subs[i].join("</td><td>")+"</td></tr>";
+	    }
+	    html += "</tbody></table>";
+	} else {
+	    html += "<p>You currently have no running submissions.</p>";
+	}
+
+	target.innerHTML = html;
+    };
+
+    // show additional information and action buttons for a selected file
+    // this is issued by a click in the staging area select box
+    widget.showFileOptions = function (id) {
+	widget = Retina.WidgetInstances.kbupload[1];
+
+	// get the file information from the DataStore
+	var dataItem = stm.DataStore.inbox[id];
+
+	// get the DOM element to hold the file options
+	var fo = document.getElementById('fileOptions');
+
+	// create the html to be filled into the file options DOM element
+	var html = "";
+
+	// generic file information
+	var info = "<table><tr><td><strong>filename</strong></td><td>"+dataItem.attributes.name+"</td></tr>\
+<tr><td><strong>size</strong></td><td>"+stm.prettySize(dataItem.file.size)+"</td></tr>\
+<tr><td><strong>upload time</strong></td><td>"+dataItem.created_on+"</td></tr>\
+<tr><td><strong>md5</strong></td><td>"+dataItem.file.checksum.md5+"</td></tr>\
+<tr><td><strong>id</strong></td><td>"+dataItem.id+"</td></tr>\
+</table><br>";
+	
+	// active action buttons
+	var deleteButton = "<button class='btn optionButton' onclick='if(confirm(\"Really delete this file?\")){SHOCK.delete_node(\""+id+"\").then(function(){ Retina.WidgetInstances.kbupload[1].updateInbox();});}'>delete</button>";
+
+	// inactive action buttons, these still need implementation
+	var translateIDsButton = "<button class='btn optionButton' disabled>translate IDs into KBase</button>";
+	var joinPairedEndsButton = "<button class='btn optionButton' disabled>join paired ends</button>";
+	var demultiplexButton = "<button class='btn optionButton' disabled>demultiplex</button>";
+
+	var testButton = "<button class='btn optionButton' onclick='Retina.WidgetInstances.kbupload[1].test(\""+id+"\");'>test</button>";
+
+	// currently all action buttons are always displayed. In future the available buttons should
+	// be selected from the file type of the selected file
+	html += info + deleteButton + translateIDsButton + joinPairedEndsButton + demultiplexButton;// + testButton;
+
+	// render the HTML
+	fo.innerHTML = html;
+    };
+
+    widget.updateFileFields = function () {
+	widget = Retina.WidgetInstances.kbupload[1];
+
+	// get the files information from the DataStore
+	var inbox = stm.DataStore.inbox;
+
+	// hash the files by ending
+	var files = {};
+	for (var i in inbox) {
+	    if (inbox.hasOwnProperty(i)) {
+		if (inbox[i].attributes.hasOwnProperty('name')) {
+		    var ending = inbox[i].attributes.name.substring(inbox[i].attributes.name.lastIndexOf('.') + 1);
+		    if (! files.hasOwnProperty(ending)) {
+			files[ending] = [];
+		    }
+		    files[ending].push({ "id": i, "name": inbox[i].attributes.name });
+		}
+	    }
+	}
+
+	// check which submission type we have
+	var sub = document.getElementById('subtype');
+	var subSel = sub.options[sub.selectedIndex].text;
+	
+	// get the template for the submission type
+	var template = widget.templates[subSel];
+	if (template) {
+
+	    // extract the interface template
+	    var interfaceTemplate = template["interface"];
+
+	    // iterate over the inputs
+	    var inP = interfaceTemplate.inputs;
+	    for (var i=0;i<inP.length; i++) {
+
+		// there is a filetype, this field must be updated
+		if (inP[i].hasOwnProperty('filetype') && inP[i].filetype.length) {
+
+		    // this is a multiselect, construct a data array
+		    if (inP[i].type == 'multiselect') {
+			var opts = [];
+			for (var h=0; h<inP[i].filetype.length; h++) {
+			    if (files.hasOwnProperty(inP[i].filetype[h])) {
+				for (var j=0; j<files[inP[i].filetype[h]].length; j++) {
+				    opts.push(files[inP[i].filetype[h]][j]);
+				}
+			    }
+			}
+			
+			// get the listselect, fill it with this data and render it
+			if (document.getElementById('submissionFieldDiv'+inP[i].aweVariable)) {
+			    widget.listSelects[i].settings.data = opts;
+			    widget.listSelects[i].settings.target = document.getElementById('submissionFieldDiv'+inP[i].aweVariable);
+			    widget.listSelects[i].render();
+			}
+		    }
+		    // this is a dropdown, create options
+		    else if (inP[i].type == 'dropdown') {
+			if (document.getElementById('submissionField'+inP[i].aweVariable)) {
+			    var opts = "";
+			    for (var h=0; h<inP[i].filetype.length; h++) {
+				if (files.hasOwnProperty(inP[i].filetype[h])) {
+				    for (var j=0; j<files[inP[i].filetype[h]].length; j++) {
+					opts += "<option value='"+files[inP[i].filetype[h]][j].id+"'>"+files[inP[i].filetype[h]][j].name+"</option>";
+				    }
+				}
+			    }
+
+			    // put the options into the innerHTML of the select
+			    document.getElementById('submissionField'+inP[i].aweVariable).innerHTML = opts;
+			}
+		    }
+		}
+	    }
+	}
+    };
+
+    /*
+     * EVENTS
+     */
+
+    // callback for the login widget
+    // this is issued on login and logout
+    widget.authenticated = function (isAuthenticated, token) {
+	widget = Retina.WidgetInstances.kbupload[1];
+
+	// a user is successfully authenticated, show the appropriate data
+	if (isAuthenticated) {
+	    document.getElementById('authorized_section').style.display = "";
+	    document.getElementById('unauthorized_section').style.display = "none";
+	    Workspace.init(RetinaConfig.workspace || null, { "token": token } );
+	    widget.token = token;
+	    widget.updateInbox();
+	    widget.getWorkspaces();
+	}
+	// the user logged out or login failed, hide content that requires authentication
+	else {
+	    document.getElementById('unauthorized_section').style.display = "";
+	    document.getElementById('authorized_section').style.display = "none";
+	    Workspace.init();
+	}
+    };
+
+    // called from the submission in case a new workspace is requested for the submission result
+    widget.createNewWorkspace = function () {
+	widget = Retina.WidgetInstances.kbupload[1];
+
+	// check if the user supplied a name for the new workspace
+	var n = document.getElementById('newWorkspaceNameField');
+	if (! n.value.length) {
+	    n.focus();
+	    alert('you must select a name to create a new workspace');
+	    return;
+	}
+
+	// we have a name, try to create a workspace
+	Workspace.create_workspace({workspace: n.value}).done(function(data){
+	    Retina.WidgetInstances.kbupload[1].newWorkspaceName = n.value;
+	    document.getElementById('newWorkspaceName').style.display = "none";
+	    Retina.WidgetInstances.kbupload[1].getWorkspaces();
+	}).fail(function(err){
+	    // something went wrong (e.g. the name already existed)
+	    // tell the user the error message from the workspace service
+	    Retina.WidgetInstances.kbupload[1].newWorkspaceName = "";
+	    alert(err.error.error.split(/\n/)[0]);
+	});
+    };
+
+    // validate if all required slots for the current pipeline are filled.
+    // if everything is ok, start the pipeline
+    // issued when the user clicks the submit button
+    widget.validateSlots = function () {
+	widget = Retina.WidgetInstances.kbupload[1];
+
+	// the validation is not yet in place, default to true
+	// in future default to false and perform validation
+	var valid = true;
+	var errors = [];
+
+	// if the validation succeeds, submit the job to AWE
+	if (valid) {
+	    widget.submitToAWE(resultNode.id);
+	}
+	// there were errors in the validation, tell the user about them
+	else {
+	    alert(errors.join("\n"));
+	}
+    };
+
+    // perform a submission to AWE
+    // issued when the user clicks submit and the validateSlots function succeeds
+    widget.submitToAWE = function (attributesNode) {
+	widget = Retina.WidgetInstances.kbupload[1];
+	
+	// check which submission type we have
+	var sub = document.getElementById('subtype');
+	var subSel = sub.options[sub.selectedIndex].text;
+	
+	// get the AWE template for the submission type
+	var template = widget.templates[subSel];
+	var aweTemplate = template.awe;
+	var interfaceTemplate = template["interface"];
+
+	// fill in info section
+	aweTemplate.info = {
+	    "pipeline": RetinaConfig.awe.pipeline,
+	    "name": subSel,
+	    "project": RetinaConfig.awe.project,
+	    "user": widget.user,
+	    "clientgroups": RetinaConfig.awe.clientgroups
+	};
+
+	// retrieve variables to replace
+	var replacements = { "SHOCK": RetinaConfig.shock };
+	for (var i in interfaceTemplate.inputs) {
+	    if (interfaceTemplate.inputs.hasOwnProperty(i)) {
+		for (var h=0; h<interfaceTemplate.inputs[i].length; i++) {
+		    if (interfaceTemplate.inputs[i].hasOwnProperty('aweVariable') && interfaceTemplate.inputs[i].aweVariable) {
+			var item = document.getElementById('submissionField'+interfaceTemplate.inputs[i].aweVariable);
+			if (interfaceTemplate.inputs[i].type == "dropdown") {
+			    replacements[interfaceTemplate.inputs[i].aweVariable] = item.options[item.selectedIndex].value;
+			} else if (interfaceTemplate.inputs[i].type == "radio") {
+			    var items = document.getElementsByName('submissionField'+interfaceTemplate.inputs[i].aweVariable);
+			    for (var j=0; j<items.length;j++) {
+				if (items[j].checked) {
+				    replacements[interfaceTemplate.inputs[i].aweVariable] = items[j].value;
+				}
+			    }
+			} else if (interfaceTemplate.inputs[i].type == "checkbox") {
+			    if (item.checked) {
+				replacements[interfaceTemplate.inputs[i].aweVariable] = "true";
+			    } else {
+				replacements[interfaceTemplate.inputs[i].aweVariable] = "false";
+			    }
+			} else if (interfaceTemplate.inputs[i].type == "multiselect") {
+			    var fileNodes = [];
+			    for (var j=0; j<item.options.length; j++) {
+				if (item.options[j].selected) {
+				    fileNodes.push(item.options[j].value);
+				}
+			    }
+			    replacements[interfaceTemplate.inputs[i].aweVariable] = fileNodes.join(",");
+			} else {
+			    replacements[interfaceTemplate.inputs[i].aweVariable] = item.value;
+			}
+		    }
+		}
+	    }
+	}
+
+	// replace variables in the AWE workflow
+	var aweString = JSON.stringify(aweTemplate);
+	for (var i in replacements) {
+	    if (replacements.hasOwnProperty(i)) {
+		aweString.replace(new RegExp("##" + i + "##", "g"), replacements[i]);
+	    }
+	}
+	aweTemplate = JSON.parse(aweString);
+
+/* TESTING */
+	console.log(aweTemplate);
+	return;
+/* TESTING */
+
+	// perform the submission
+	var url = RetinaConfig.awe +"/job";
+	var aFile = [ JSON.stringify(aweTemplate) ];
+	var oMyBlob = new Blob(aFile, { "type" : "text\/json" });
+	var fd = new FormData();
+	fd.append('upload', oMyBlob);
+	jQuery.ajax(url, {
+	    contentType: false,
+	    processData: false,
+	    data: fd,
+	    success: function(data) {
+		// the submission succeeded, query the current status and feed back to the user
+		jQuery.ajax(RetinaConfig.awe+"/job/"+data.data.id, { success: function(data) {
+		    alert('Your submission is complete. The current status is '+data.data.state);
+		    Retina.WidgetInstances.kbupload[1].updateInbox();
+		}});
+	    },
+	    error: function(jqXHR, error){
+		// something went wrong with the submission
+		console.log( "error" );
+		console.log(jqXHR);
+		console.log(error);
+	    },
+	    headers: { "Datatoken": widget.token },
+	    type: "POST"
+	});
+    };
+    
+    // retrieve the private workspaces available to the current user
+    widget.getWorkspaces = function (cached) {
+	widget = Retina.WidgetInstances.kbupload[1];
+
+	// use the version in the DataStore, do not reload
+	if (cached && stm.DataStore.hasOwnProperty('workspaces')) {
+	     // get the result from the DataStore
+	    var data = stm.DataStore.workspaces;
+
+	    // get the DOM element that holds the workspace selection
+	    var sel = document.getElementById('workspaceSelector');
+
+	    // add the event listener to hide the name input unless 'create new' is selected
+	    sel.addEventListener('change', function() {
+		if (this.options[this.selectedIndex].value == "new") {
+		    document.getElementById('newWorkspaceName').style.display = "";
+		} else {
+		    document.getElementById('newWorkspaceName').style.display = "none";
+		}
+	    });
+
+	    // create the options for the workspace selector
+	    var opts = "";
+	    for (var i=0;i<data.length;i++) {
+
+		// if a new workspace has just been created, it is selected
+		var isSelected = "";
+		if (Retina.WidgetInstances.kbupload[1].newWorkspaceName && Retina.WidgetInstances.kbupload[1].newWorkspaceName == data[i][0]) {
+		    isSelected = " selected";
+		}
+		opts += "<option"+isSelected+">"+data[i][0]+"</option>";
+	    }
+	    opts += "<option value='new'>- create new -</option>";
+	    
+	    // fill the select box with the options
+	    sel.innerHTML = opts;
+	    
+	    // if there is only one entry, the user has no workspaces yet, show the workspace name input
+	    if (sel.options.length == 1) {
+		document.getElementById('newWorkspaceName').style.display = "";
+	    }
+
+	    return;
+	}
+
+	// call the Workspace service
+	Workspace.list_workspaces({excludeGlobal: 1}).done(function(data){
+
+	    // store the result in the DataStore
+	    stm.DataStore.workspaces = data;
+
+	    // get the DOM element that holds the workspace selection
+	    var sel = document.getElementById('workspaceSelector');
+
+	    // add the event listener to hide the name input unless 'create new' is selected
+	    sel.addEventListener('change', function() {
+		if (this.options[this.selectedIndex].value == "new") {
+		    document.getElementById('newWorkspaceName').style.display = "";
+		} else {
+		    document.getElementById('newWorkspaceName').style.display = "none";
+		}
+	    });
+
+	    // create the options for the workspace selector
+	    var opts = "";
+	    for (var i=0;i<data.length;i++) {
+
+		// if a new workspace has just been created, it is selected
+		var isSelected = "";
+		if (Retina.WidgetInstances.kbupload[1].newWorkspaceName && Retina.WidgetInstances.kbupload[1].newWorkspaceName == data[i][0]) {
+		    isSelected = " selected";
+		}
+		opts += "<option"+isSelected+">"+data[i][0]+"</option>";
+	    }
+	    opts += "<option value='new'>- create new -</option>";
+	    
+	    // fill the select box with the options
+	    sel.innerHTML = opts;
+	    
+	    // if there is only one entry, the user has no workspaces yet, show the workspace name input
+	    if (sel.options.length == 1) {
+		document.getElementById('newWorkspaceName').style.display = "";
+	    }
+	});
+    };
+
+    // progress event for the file upload
+    // this updated the progress bar
+    widget.onProgress = function (event) {
+	widget = Retina.WidgetInstances.kbupload[1];
+	var loaded = event.loaded + (SHOCK.currentChunk * SHOCK.chunkSize);
+	var total = SHOCK.file.size;
+	var percent = parseFloat(loaded / total * 100);
+	widget.progressCurrent.innerHTML = stm.prettySize(loaded);
+	widget.pBarInner.style.width = percent+"%";
+    };
+
+    // update the uploaded file with attributes indicating that it is a staging area file
+    // this is called when a file upload succeeds
+    widget.uploadComplete = function (data) {
+	
+	// create the metadata structure for the staging area
+	var inboxAttributes = { "user": Retina.WidgetInstances.kbupload[1].user,
+				"type": "inbox",
+				"name": data.attributes.incomplete_name };
+
+	// issue the node update through the SHOCK library
+	SHOCK.update_node(data.id, inboxAttributes, Retina.WidgetInstances.kbupload[1].updateInbox);
+    };
+
+    // update the contents of the staging area
+    widget.updateInbox = function () {
+	widget = Retina.WidgetInstances.kbupload[1];
+
+	// get the staging area files from SHOCK and call the showShockResult function
+	// once the file information is available
+	SHOCK.get_all_nodes(Retina.WidgetInstances.kbupload[1].showShockResult,"?query&type=inbox&user="+Retina.WidgetInstances.kbupload[1].user);
+	
+	// get the pipeline status information from AWE and call the showAWEResult function
+	jQuery.get(RetinaConfig.awe+"/job?query&info.user="+widget.user+"&info.project=data-importer", function (data) {
+	    Retina.WidgetInstances.kbupload[1].showAWEResult(data);
+	});
+    };
+
+    // issue a download for the current template in JSON format
+    widget.jsonTemplate = function (type) {
+
+	// stringify the JSON structure of the template with nice padding and issue the stm saveAs function
+	stm.saveAs(JSON.stringify(Retina.WidgetInstances.kbupload[1].templates[type].metadata, null, 2), Retina.WidgetInstances.kbupload[1].templates[type].name+".json");
+    };
+
+    // issue a download for the current template in Excel format
+    // the type and an empty Excel workbook object is passed to this function
+    widget.excelTemplate = function (type, wb) {
+	widget = Retina.WidgetInstances.kbupload[1];
+
+	// get the template structure
+	var template = Retina.WidgetInstances.kbupload[1].templates[type].metadata;
+	
+	// make sure optional template data is filled (the check_template function fills optional data with defaults)
+	// this would also check if there are errors, but this should be done offline before a template is declared a
+	// valid addition to the DataImporter
+	var retVal = Retina.WidgetInstances.template_validator[1].check_template(template, 1);
+	template = retVal.template;
+
+	// initialize the Excel workbook counter
+	var wbNum = 0;
+
+	// these are for debugging, there is currently an issue with deep nesting
+	// basic parsing works fine
+	window.tgs = template.groups;
+	window.wb = wb;
+
+	// iterate over the template groups to find toplevel groups
+	for (var i in template.groups) {
+	    if (template.groups.hasOwnProperty(i)) {
+		var group = template.groups[i];
+
+		// if this is a toplevel group, the parsing needs to start
+		if (group.toplevel) {
+
+		    // the first worksheet already exists in the workbook, only
+		    // change the name
+		    if (wbNum == 0) {
+			wb.worksheets[0].name = group.label;
+		    }
+		    // a new worksheet is needed for this group
+		    else {
+			wb.addWorksheet({ name: group.label });
+		    }
+
+		    // initialize the field counter (x-coordinate on the sheet)
+		    var fieldNum = 0;
+
+		    // iterate over the fields of the group
+		    for (var h in group.fields) {
+			if (group.fields.hasOwnProperty(h)) {
+
+			    // the setCell function takes the workbook indes, the column number,
+			    // the row number and the cell value
+			    var field = group.fields[h];
+			    wb.setCell(wbNum, fieldNum, 0, field.label);
+
+			    // if there is a description, put it in the second row
+			    if (field.description) {
+				wb.setCell(wbNum, fieldNum, 1, field.description);
+			    }
+
+			    // increment the field counter
+			    fieldNum++;
+			}
+		    }
+		    // increment the worksheet counter
+		    wbNum++;
+		    
+		    // if the group has subgroups, parse them
+		    if (group.hasOwnProperty('subgroups')) {
+
+			// fillSubgroup is a separate function because it is called recursively to handle deep nesting
+			[ group, wb, wbNum ] = Retina.WidgetInstances.kbupload[1].fillSubgroup(template, group, wb, wbNum);
+		    }
+		}
+	    }
+	}
+	
+	// open a save dialog for the user through the stm.saveAs function
+	stm.saveAs(xlsx(wb).base64, template.name+".xlsx", "data:application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;base64,");
+    };
+
+    // subgroup parsing function
+    // this calls itself recursively to handle deep nesting
+    widget.fillSubgroup = function (template, group, wb, wbNum) {
+	for (var h in group.subgroups) {
+	    if (group.subgroups.hasOwnProperty(h)) {
+		var subgroup = template.groups[h];
+		if (group.subgroups[h].hasOwnProperty('prefix')) {
+		    subgroup.prefix = group.subgroups[h].prefix;
+		}
+		subgroup.parent = group.name;
+		if (subgroup.hasOwnProperty('fields')) {
+
+		    // add a worksheet for this group
+		    // the name might have a prefix (see below)
+		    wb.addWorksheet({ name: subgroup.prefix ? subgroup.prefix +"-"+subgroup.label : subgroup.label });
+
+		    // add a reference cell for the parent group
+		    wb.setCell(wbNum, 0, 0, subgroup.parent);
+		    wb.setCell(wbNum, 0, 1, "name of the "+subgroup.parent+" of this "+subgroup.name);
+
+		    // start with offset 1 due to the reference cell
+		    var fieldNum = 1;
+
+		    // iterate over the fields and create a cell for each
+		    for (var h in subgroup.fields) {
+			if (subgroup.fields.hasOwnProperty(h)) {
+			    var field = subgroup.fields[h];
+			    wb.setCell(wbNum, fieldNum, 0, field.label ? field.label : (field.name ? field.name : h));
+
+			    // if the is a descriptions, add it in the cell below
+			    if (field.description) {
+				wb.setCell(wbNum, fieldNum, 1, field.description);
+			    }
+			    // increment the field counter
+			    fieldNum++;
+			}
+		    }
+		    // increment the worksheet counter
+		    wbNum++;
+		} else {
+		    // if a group does not have fields, it does not create its own spreadsheet
+		    // instead it adds its name as a prefix to the child groups
+		    for (var j in subgroup.subgroups) {
+			if (subgroup.subgroups.hasOwnProperty(j)) {
+			    subgroup.subgroups[j].prefix = h;
+			}
+		    }
+		}
+	
+		// if there are subgroups, make a recursive call to this function
+		if (subgroup.hasOwnProperty('subgroups')) {
+		    [ group, wb, wbNum ] = Retina.WidgetInstances.kbupload[1].fillSubgroup(template, subgroup, wb, wbNum);
+		}
+	    }
+	}
+
+	return [group, wb, wbNum];
+    };
+    
+    // open an empty Excel workbook from the data directory, use the xlsx library
+    // to create a javascript object from it and call the excelTemplate function, passing
+    // the object and the selected type
+    widget.xlsInit = function (type) {
+	// issue an XMLHttpRequest to load the empty Excel workbook from disk
+	var xhr = new XMLHttpRequest();
+	var method = "GET";
+	var base_url = "data/Workbook1.xlsx";
+	if ("withCredentials" in xhr) {
+	    xhr.open(method, base_url, true);
+	} else if (typeof XDomainRequest != "undefined") {
+	    xhr = new XDomainRequest();
+	    xhr.open(method, base_url);
+	} else {
+	    alert("your browser does not support CORS requests");
+	    console.log("your browser does not support CORS requests");
+	    return undefined;
+	}
+
+	xhr.responseType = 'arraybuffer';
+
+	xhr.onload = function() {
+
+	    // the file is loaded, create a javascript object from it
+	    var wb = xlsx(xhr.response);
+
+	    // call the excelTemplate function with the type and the workbook object
+	    Retina.WidgetInstances.kbupload[1].excelTemplate(type, wb);
+	}
+
+	xhr.send();
+    };
+
+    // load the metadata template from disc and store them in the widget
+    widget.loadTemplates = function () {
+	var templateNames = RetinaConfig.templates;
+	for (var i=0;i<templateNames.length;i++) {
+	    jQuery.ajax("data/"+templateNames[i]+".json", { method: "GET",
+							    dataType: "text",
+							    beforeSend: function( xhr ) {
+								xhr.tname = templateNames[i];
+							    },
+							    success: function(data,status,jqXHR) {
+								Retina.WidgetInstances.kbupload[1].templates[jqXHR.tname] = JSON.parse(data);
+								if (document.getElementById('subtype')) {
+								    Retina.WidgetInstances.kbupload[1].showSubtype(document.getElementById('subtype'));
+								}
+							    }
+							  });
+	}
+    };
+
+    /*
+     * HELPER FUNCTIONS
+     */
+
+    // create dots for awe steps
+    widget.dots = function (stages) {
+	var dots = '<span>';
+	if (stages.length > 0) {
+	    for (var i=0;i<stages.length;i++) {
+		if (stages[i].state == 'completed') {
+		    dots += '<span style="color: green;font-size: 19px; cursor: default;" title="completed: '+stages[i].cmd.description+'">&#9679;</span>';
+		} else if (stages[i].state == 'in-progress') {
+		    dots += '<span style="color: blue;font-size: 19px; cursor: default;" title="in-progress: '+stages[i].cmd.description+'">&#9679;</span>';
+		} else if (stages[i].state == 'queued') {
+		    dots += '<span style="color: orange;font-size: 19px; cursor: default;" title="queued: '+stages[i].cmd.description+'">&#9679;</span>';
+		} else if (stages[i].state == 'error') {
+		    dots += '<span style="color: red;font-size: 19px; cursor: default;" title="error: '+stages[i].cmd.description+'">&#9679;</span>';
+		} else if (stages[i].state == 'init') {
+		    dots += '<span style="color: gray;font-size: 19px; cursor: default;" title="init: '+stages[i].cmd.description+'">&#9679;</span>';
+		}
+	    }
+	}
+	
+	dots += "</span>";
+	
+	return dots;
+    };
+
+
+    widget.test = function (node) {
+    	var url = 'http://140.221.84.214:7078/node/'+node+'?download_raw';
+        jQuery.ajax(url, { 
+    	    success: function(data) {
+    		var retval = null;
+    		if (data != null && data.hasOwnProperty('data')) {
+    		    if (data.error != null) {
+    			retval = null;
+    			console.log("error: "+data.error);
+    		    } else {
+    			retval = data.data;
+    		    }
+    		} else {
+    		    retval = null;
+    		    console.log(data);
+    		}
+    		console.log(retval);		
+    	    },
+    	    error: function(jqXHR, error) {
+    		console.log(jqXHR);
+    	    },
+    	    headers: SHOCK.auth_header
+    	});
+    };
+
+    // widget.test = function () {
+    // 	var method = "GET";
+    // 	var base_url = "data/genomeSubmission.xlsx";
+    // 	if ("withCredentials" in xhr) {
+    // 	    xhr.open(method, base_url, true);
+    // 	} else if (typeof XDomainRequest != "undefined") {
+    // 	    xhr = new XDomainRequest();
+    // 	    xhr.open(method, base_url);
+    // 	} else {
+    // 	    alert("your browser does not support CORS requests");
+    // 	    console.log("your browser does not support CORS requests");
+    // 	    return undefined;
+    // 	}
+
+    // 	xhr.responseType = 'arraybuffer';
+
+    // 	xhr.onload = function() {
+
+    // 	    // the file is loaded, create a javascript object from it
+    // 	    var wb = xlsx(xhr.response);
+
+    // 	    var parsedData = {};
+    // 	}
+
+    // 	xhr.send();
+    // };
+})();
