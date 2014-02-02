@@ -193,7 +193,7 @@
 		       "metatranscriptome",
 		       "re-sequencing",
 		       "rna-seq transcriptome",
-		       "GWAS",
+		       "KBaseGwasData.GwasPopulationTrait",
 		       "PPI Network",
 		       "co expression network",
 		       "co fitness",
