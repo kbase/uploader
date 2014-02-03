@@ -1,0 +1,10 @@
+OVERVIEW
+-----------------------------------------
+KBase uploader UI and related workflows and scripts.
+
+
+VERSION: 0.9 (Released 2/7/2014)
+------------------------------------------
+- UI for upload 
+- data type specific configs
+- domain specific upload pipelines
