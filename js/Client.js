@@ -7,7 +7,7 @@
 
 	Workspace.url = url;
 	if (typeof(Workspace.url) != "string" || Workspace.url.length == 0) {
-            Workspace.url = "http://kbase.us/services/ws/";
+            Workspace.url = "http://140.221.84.209:7058";
 	}
 	Workspace.auth = auth ? auth : { 'token' : '', 'user_id' : ''};
 	Workspace.auth_cb = auth_cb;
