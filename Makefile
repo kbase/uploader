@@ -43,9 +43,8 @@ uninstall: clean
 	-rm -rf $(SERVICE_STORE)
 	-rm -rf $(SERVICE_DIR)
 
-deploy: deploy-cfg | deploy-service deploy-client deploy-docs
-	@echo "stoping apache ..."
-	$(SERVICE_DIR)/stop_service
+deploy: deploy-ui
+	@echo "Deploying UI"
 
 deploy-ui: build-ui
 
