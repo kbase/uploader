@@ -32,40 +32,40 @@
       "tasks": [
 	  {
 	      "cmd": {
-		  "args": "infile",
-		  "description": "validate sequence",
-		  "name": "kb_validate_sequence.pl"
+		  "args": "##FILETYPE## ##FILENAME## ##SHOCKNODE## ##SHOCKURL##/##SHOCKNODE##",
+		  "description": "validate sequence and generate the workspace document for upload to the workspace",
+                  "name": "kb_validate_file_and_generate_ws_doc.pl"
 	      },
 	      "dependsOn": [],
 	      "inputs": {
-		  "infile": {
-		      "host": "##SHOCK##",
-		      "node": ""
-		  },
-		  "attributes":
-		  {
-		      "host": "##SHOCK##",
-		      "node": ""
+		  "##FILENAME##": {
+		      "host": "##SHOCKURL##",
+		      "node": "##SHOCKNODE##"
+		  }
+              },
+              "outputs": {
+                  "document.json": {
+		      "host": "##SHOCKURL##",
+		      "node": "-"
 		  }
 	      },
-	      "outputs": [ "outfile" ],
 	      "taskid": "0",
 	      "totalwork": 1
 	  },
 	  {
 	      "cmd": {
-		  "args": "infile",
+		  "args": "-type=Communities.DataHandle-1.0 -id=##FILENAME## -data=@document.json -workspace=##WORKSPACE## -token=##TOKEN##",
 		  "description": "create workspace object",
-		  "name": "kb_create_workspace_object.pl"
+		  "name": "kb_create_ws_object.pl"
 	      },
 	      "dependsOn": [ 0 ],
-	      "inputs": [ "infile" ],
-	      "outputs": {
-		  "outfile": {
-		      "host": "##SHOCK##",
-		      "node": "-"
-		  }
-	      },
+              "inputs": {
+                  "document.json": {
+                      "host": "##SHOCKURL##",
+                      "node": "-",
+                      "origin": "0"
+                  }
+              },
 	      "taskid": "1",
 	      "totalwork": 1
 	  }
