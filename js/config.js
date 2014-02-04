@@ -3,7 +3,7 @@ var RetinaConfig = {
     "awe": { "url": "http://140.221.85.36:8000",
 	     "pipeline": "kb-metagenome",
 	     "project": "data-importer",
-	     "clientgroups": "kbjared"
+	     "clientgroups": "kb_upload"
 	   },
     "workspace": "http://140.221.84.209:7058", //"https://kbase.us/services/ws/",
     "authURL": "https://kbase.us/services/authorization/Sessions/Login/",
