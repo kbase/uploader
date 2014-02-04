@@ -450,7 +450,7 @@ The time between submission and a resulting data object in the workspace may tak
 
 	// currently all action buttons are always displayed. In future the available buttons should
 	// be selected from the file type of the selected file
-	html += info + deleteButton + translateIDsButton + joinPairedEndsButton + demultiplexButton;// + testButton;
+	html += info + deleteButton + translateIDsButton + joinPairedEndsButton + demultiplexButton + testButton;
 
 	// render the HTML
 	fo.innerHTML = html;
@@ -492,7 +492,7 @@ The time between submission and a resulting data object in the workspace may tak
 	    for (var i=0;i<inP.length; i++) {
 
 		// there is a filetype, this field must be updated
-		if (inP[i].hasOwnProperty('filetype') && inP[i].filetype.length) {
+		if (inP[i].hasOwnProperty('filetype') && inP[i].filetype != null && inP[i].filetype.length) {
 
 		    // this is a multiselect, construct a data array
 		    if (inP[i].type == 'multiselect') {
@@ -597,7 +597,7 @@ The time between submission and a resulting data object in the workspace may tak
 
 	// if the validation succeeds, submit the job to AWE
 	if (valid) {
-	    widget.submitToAWE(resultNode.id);
+	    widget.submitToAWE();
 	}
 	// there were errors in the validation, tell the user about them
 	else {
@@ -629,39 +629,38 @@ The time between submission and a resulting data object in the workspace may tak
 	};
 
 	// retrieve variables to replace
-	var replacements = { "SHOCK": RetinaConfig.shock };
-	for (var i in interfaceTemplate.inputs) {
-	    if (interfaceTemplate.inputs.hasOwnProperty(i)) {
-		for (var h=0; h<interfaceTemplate.inputs[i].length; i++) {
-		    if (interfaceTemplate.inputs[i].hasOwnProperty('aweVariable') && interfaceTemplate.inputs[i].aweVariable) {
-			var item = document.getElementById('submissionField'+interfaceTemplate.inputs[i].aweVariable);
-			if (interfaceTemplate.inputs[i].type == "dropdown") {
-			    replacements[interfaceTemplate.inputs[i].aweVariable] = item.options[item.selectedIndex].value;
-			} else if (interfaceTemplate.inputs[i].type == "radio") {
-			    var items = document.getElementsByName('submissionField'+interfaceTemplate.inputs[i].aweVariable);
-			    for (var j=0; j<items.length;j++) {
-				if (items[j].checked) {
-				    replacements[interfaceTemplate.inputs[i].aweVariable] = items[j].value;
-				}
-			    }
-			} else if (interfaceTemplate.inputs[i].type == "checkbox") {
-			    if (item.checked) {
-				replacements[interfaceTemplate.inputs[i].aweVariable] = "true";
-			    } else {
-				replacements[interfaceTemplate.inputs[i].aweVariable] = "false";
-			    }
-			} else if (interfaceTemplate.inputs[i].type == "multiselect") {
-			    var fileNodes = [];
-			    for (var j=0; j<item.options.length; j++) {
-				if (item.options[j].selected) {
-				    fileNodes.push(item.options[j].value);
-				}
-			    }
-			    replacements[interfaceTemplate.inputs[i].aweVariable] = fileNodes.join(",");
-			} else {
-			    replacements[interfaceTemplate.inputs[i].aweVariable] = item.value;
+	var replacements = { "SHOCK": RetinaConfig.shock,
+			     "WORKSPACE": document.getElementById('workspaceSelector').options[document.getElementById('workspaceSelector').selectedIndex].value,
+			     "TOKEN": widget.token };
+	for (var i=0; i<interfaceTemplate.inputs.length; i++) {
+	    if (interfaceTemplate.inputs[i].hasOwnProperty('aweVariable') && interfaceTemplate.inputs[i].aweVariable) {
+		var item = document.getElementById('submissionField'+interfaceTemplate.inputs[i].aweVariable);
+		if (interfaceTemplate.inputs[i].type == "dropdown") {
+		    replacements[interfaceTemplate.inputs[i].aweVariable] = item.options[item.selectedIndex].value;
+		} else if (interfaceTemplate.inputs[i].type == "radio") {
+		    var items = document.getElementsByName('submissionField'+interfaceTemplate.inputs[i].aweVariable);
+		    for (var j=0; j<items.length;j++) {
+			if (items[j].checked) {
+			    replacements[interfaceTemplate.inputs[i].aweVariable] = items[j].value;
 			}
 		    }
+		} else if (interfaceTemplate.inputs[i].type == "checkbox") {
+		    if (item.checked) {
+			replacements[interfaceTemplate.inputs[i].aweVariable] = "true";
+		    } else {
+			replacements[interfaceTemplate.inputs[i].aweVariable] = "false";
+		    }
+		} else if (interfaceTemplate.inputs[i].type == "multiselect") {
+		    var fileNodes = [];
+		    var fileNames = [];
+		    for (var j=0; j<item.options.length; j++) {
+			fileNodes.push(item.options[j].value);
+			fileNames.push(item.options[j].text);
+		    }
+		    replacements[interfaceTemplate.inputs[i].aweVariable+"FileName"] = fileNames.join(",");
+		    replacements[interfaceTemplate.inputs[i].aweVariable] = fileNodes.join(",");
+		} else {
+		    replacements[interfaceTemplate.inputs[i].aweVariable] = item.value;
 		}
 	    }
 	}
@@ -670,15 +669,10 @@ The time between submission and a resulting data object in the workspace may tak
 	var aweString = JSON.stringify(aweTemplate);
 	for (var i in replacements) {
 	    if (replacements.hasOwnProperty(i)) {
-		aweString.replace(new RegExp("##" + i + "##", "g"), replacements[i]);
+		aweString = aweString.replace(new RegExp("\#\#" + i + "\#\#", "g"), replacements[i]);
 	    }
 	}
 	aweTemplate = JSON.parse(aweString);
-
-/* TESTING */
-	console.log(aweTemplate);
-	return;
-/* TESTING */
 
 	// perform the submission
 	var url = RetinaConfig.awe.url +"/job";
@@ -1073,55 +1067,55 @@ The time between submission and a resulting data object in the workspace may tak
     };
 
 
-    widget.test = function (node) {
-    	var url = 'http://140.221.84.214:7078/node/'+node+'?download_raw';
-        jQuery.ajax(url, { 
-    	    success: function(data) {
-    		var retval = null;
-    		if (data != null && data.hasOwnProperty('data')) {
-    		    if (data.error != null) {
-    			retval = null;
-    			console.log("error: "+data.error);
-    		    } else {
-    			retval = data.data;
-    		    }
-    		} else {
-    		    retval = null;
-    		    console.log(data);
-    		}
-    		console.log(retval);		
-    	    },
-    	    error: function(jqXHR, error) {
-    		console.log(jqXHR);
-    	    },
-    	    headers: SHOCK.auth_header
-    	});
-    };
-
-    // widget.test = function () {
-    // 	var method = "GET";
-    // 	var base_url = "data/genomeSubmission.xlsx";
-    // 	if ("withCredentials" in xhr) {
-    // 	    xhr.open(method, base_url, true);
-    // 	} else if (typeof XDomainRequest != "undefined") {
-    // 	    xhr = new XDomainRequest();
-    // 	    xhr.open(method, base_url);
-    // 	} else {
-    // 	    alert("your browser does not support CORS requests");
-    // 	    console.log("your browser does not support CORS requests");
-    // 	    return undefined;
-    // 	}
-
-    // 	xhr.responseType = 'arraybuffer';
-
-    // 	xhr.onload = function() {
-
-    // 	    // the file is loaded, create a javascript object from it
-    // 	    var wb = xlsx(xhr.response);
-
-    // 	    var parsedData = {};
-    // 	}
-
-    // 	xhr.send();
+    // widget.test = function (node) {
+    // 	node = "32174122-bea4-4d9a-9884-39d3ed49d64d";
+    // 	var url = 'http://140.221.84.214:7078/node/'+node+'?download_raw';
+    //     jQuery.ajax(url, { 
+    // 	    success: function(data, textStatus, jqXHR) {
+    // 		// the file is loaded, create a javascript object from it
+    // 		var wb = xlsx(jqXHR.responseText);
+		
+    // 		window.wb = wb;
+    // 	    },
+    // 	    error: function(jqXHR, error) {
+    // 		console.log(jqXHR);
+    // 	    },
+    // 	    headers: SHOCK.auth_header,
+    // 	    beforeSend: function(jqXHR, settings) {
+    // 		jqXHR.responseType = "arraybuffer";
+    // 	    }
+    // 	});
     // };
+
+    widget.excelToJSON = function (node) {
+	widget = Retina.WidgetInstances.kbupload[1];
+	var xhr = new XMLHttpRequest();
+    	var method = "GET";
+    	var url = SHOCK.url+'/node/'+node+'?download_raw';
+    	if ("withCredentials" in xhr) {
+    	    xhr.open(method, url, true);
+    	} else if (typeof XDomainRequest != "undefined") {
+    	    xhr = new XDomainRequest();
+    	    xhr.open(method, url);
+    	} else {
+    	    alert("your browser does not support CORS requests");
+    	    console.log("your browser does not support CORS requests");
+    	    return undefined;
+    	}
+
+    	xhr.responseType = 'arraybuffer';
+	xhr.setRequestHeader('Authorization', "OAuth "+widget.token);
+
+    	xhr.onload = function() {
+
+    	    // the file is loaded, create a javascript object from it
+    	    var wb = xlsx(xhr.response);
+
+    	    var parsedData = {};
+	    
+	    window.wb = wb;
+    	}
+
+    	xhr.send();
+    };
 })();
