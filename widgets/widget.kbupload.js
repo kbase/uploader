@@ -27,6 +27,7 @@
     widget.token = null;
     widget.newWorkspaceName = "";
     widget.sequenceFiles = [];
+    widget.jsonTemplates = {};
     widget.templates = {};
     widget.allowedFileEndings = [ "fna", "fas", "fasta", "sff", "fastq", "txt", "xlsx", "json" ];
 
@@ -211,7 +212,7 @@
 	html += '</select>\
 <div id="subtype_description" style="margin-left: 20px; width: 700px;clear: both;"></div>\
 <div class="alert alert-info" style="margin-top: 20px;width: 562px;">\
-<b>Note:</b>\
+<b>Note: </b>\
 The time between submission and a resulting data object in the workspace may take some time depending on the selected pipeline. In some cases, like the Microbial Communities pipeline, this might be several days.\
 </div>';
 
@@ -363,6 +364,9 @@ The time between submission and a resulting data object in the workspace may tak
 
 	    // create an option for the staging file box
 	    if(data[i].attributes.hasOwnProperty('name')) {
+		if (data[i].attributes.name.match(/\.xlsx$/)) {
+		    widget.excelToJSON(data[i].id);
+		}
 		selectOptions += "<option value='"+data[i].id+"'>"+data[i].attributes.name+"</option>";
 	    }
 	}
@@ -450,7 +454,7 @@ The time between submission and a resulting data object in the workspace may tak
 
 	// currently all action buttons are always displayed. In future the available buttons should
 	// be selected from the file type of the selected file
-	html += info + deleteButton + translateIDsButton + joinPairedEndsButton + demultiplexButton + testButton;
+	html += info + deleteButton + translateIDsButton + joinPairedEndsButton + demultiplexButton;// + testButton;
 
 	// render the HTML
 	fo.innerHTML = html;
@@ -1066,27 +1070,7 @@ The time between submission and a resulting data object in the workspace may tak
 	return dots;
     };
 
-
-    // widget.test = function (node) {
-    // 	node = "32174122-bea4-4d9a-9884-39d3ed49d64d";
-    // 	var url = 'http://140.221.84.214:7078/node/'+node+'?download_raw';
-    //     jQuery.ajax(url, { 
-    // 	    success: function(data, textStatus, jqXHR) {
-    // 		// the file is loaded, create a javascript object from it
-    // 		var wb = xlsx(jqXHR.responseText);
-		
-    // 		window.wb = wb;
-    // 	    },
-    // 	    error: function(jqXHR, error) {
-    // 		console.log(jqXHR);
-    // 	    },
-    // 	    headers: SHOCK.auth_header,
-    // 	    beforeSend: function(jqXHR, settings) {
-    // 		jqXHR.responseType = "arraybuffer";
-    // 	    }
-    // 	});
-    // };
-
+    // function to convert Excel metadata files to JSON format
     widget.excelToJSON = function (node) {
 	widget = Retina.WidgetInstances.kbupload[1];
 	var xhr = new XMLHttpRequest();
@@ -1105,15 +1089,43 @@ The time between submission and a resulting data object in the workspace may tak
 
     	xhr.responseType = 'arraybuffer';
 	xhr.setRequestHeader('Authorization', "OAuth "+widget.token);
+	xhr.id = node;
 
     	xhr.onload = function() {
+
+	    console.log(xhr.id);
 
     	    // the file is loaded, create a javascript object from it
     	    var wb = xlsx(xhr.response);
 
     	    var parsedData = {};
-	    
-	    window.wb = wb;
+	    var groups = {};
+	    for (var i=0; i<wb.worksheets.length; i++) {
+		var ws = wb.worksheets[i];
+		if (ws.name == "README") {
+		    continue;
+		}
+		groups[ws.name] = 1;
+	    }
+	    for (var i=0; i<wb.worksheets.length; i++) {
+		var ws = wb.worksheets[i];
+		if (groups.hasOwnProperty(ws.data[0][0].value)) {
+		    parsedData[ws.data[0][0].value][ws.name] = [];
+		    for (var j=2;j<ws.data.length;j++) {
+			var ds = {};
+			for (var h=0;h<ws.data[0].length; h++) {
+			    ds[ws.data[0][h].value] = ws.data[2][h].value;
+			}
+			parsedData[ws.data[0][0].value][ws.name].push(ds);	
+		    }
+		} else {
+		    parsedData[ws.name] = {};
+		    for (var h=0;h<ws.data[0].length; h++) {
+			parsedData[ws.name][ws.data[0][h].value] = ws.data[2][h].value;
+		    }
+		} 
+	    }
+	    widget = Retina.WidgetInstances.kbupload[1].jsonTemplates[xhr.id] = parsedData;
     	}
 
     	xhr.send();
