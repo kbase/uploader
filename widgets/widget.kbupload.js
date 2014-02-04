@@ -1093,8 +1093,6 @@ The time between submission and a resulting data object in the workspace may tak
 
     	xhr.onload = function() {
 
-	    console.log(xhr.id);
-
     	    // the file is loaded, create a javascript object from it
     	    var wb = xlsx(xhr.response);
 
