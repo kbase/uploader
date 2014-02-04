@@ -32,7 +32,7 @@
       "tasks": [
 	  {
 	      "cmd": {
-		  "args": "##FILETYPE## ##FILENAME## ##SHOCKNODE## ##SHOCKURL##/##SHOCKNODE##",
+		  "args": "##FILETYPE## @##FILENAME## ##SHOCKNODE## ##SHOCKURL##/##SHOCKNODE##",
 		  "description": "validate sequence and generate the workspace document for upload to the workspace",
                   "name": "kb_validate_file_and_generate_ws_doc.pl"
 	      },
