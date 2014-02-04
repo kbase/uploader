@@ -36,9 +36,10 @@ function xlsx(file) {
 	
 	function unescapeXML(s) { return typeof s === 'string' ? s.replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&quot;/g, '"').replace(/&#x27;/g, '\'') : ''; }
 
-    if (typeof file === 'object' && ! file.hasOwnProperty('worksheets')) { // Load
+    if (typeof file === 'string' || (typeof file === 'object' && ! file.hasOwnProperty('worksheets'))) { // Load
 		zipTime = Date.now();
 		zip = zip.load(file);
+
 		result = { worksheets: [], zipTime: Date.now() - zipTime };
 		processTime = Date.now();
 		sharedStrings = [];
@@ -171,7 +172,7 @@ function xlsx(file) {
 		styles = new Array(1);
 		borders = new Array(1);
 		fonts = new Array(1);
-		
+
 		w = file.worksheets.length;
 		while (w--) { 
 			// Generate worksheet (gather sharedStrings), and possibly table files, then generate entries for constant files below
