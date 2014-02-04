@@ -25,27 +25,23 @@
 	      "default": null,
 	      "data": null,
 	      "isMetadata": false,
-	      "aweVariable": "infile" }
+	      "aweVariable": "SEQUENCE"
+	  }
       ]
   },
   "awe": {
       "tasks": [
 	  {
 	      "cmd": {
-		  "args": "infile",
+		  "args": "##SEQUENCE##",
 		  "description": "validate sequence",
 		  "name": "kb_validate_sequence.pl"
 	      },
 	      "dependsOn": [],
 	      "inputs": {
-		  "infile": {
+		  "sequence": {
 		      "host": "##SHOCK##",
-		      "node": ""
-		  },
-		  "attributes":
-		  {
-		      "host": "##SHOCK##",
-		      "node": ""
+		      "node": "##SEQUENCE##"
 		  }
 	      },
 	      "outputs": [ "outfile" ],
@@ -53,17 +49,16 @@
 	      "totalwork": 1
 	  },
 	  {
-	      "cmd": {
-		  "args": "infile",
-		  "description": "create workspace object",
-		  "name": "kb_create_workspace_object.pl"
+	    "cmd": {
+		  "args": "--fastafile=##SEQUENCEFileName## --ws-name=##WORKSPACE## ---authtoken=##TOKEN##",
+		  "description": "save data as genome typed object",
+		  "name": "save_ws_genome.pl"
 	      },
-	      "dependsOn": [ 0 ],
-	      "inputs": [ "infile" ],
-	      "outputs": {
-		  "outfile": {
+	      "dependsOn": [0],
+	      "inputs": {
+		  "infile": {
 		      "host": "##SHOCK##",
-		      "node": "-"
+		      "node": "##SEQUENCE##"
 		  }
 	      },
 	      "taskid": "1",
