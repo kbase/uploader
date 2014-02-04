@@ -6,46 +6,46 @@
 	  "excel": true,
 	  "json": false
       },
-      "inputs": [ 
+      "inputs": [
 	  { 
 	      "type": "dropdown",
-	      "filetype": [ "xlsx" ],
-	      "label": "select metadata file(s)",
+	      "filetype": null,
+	      "label": "select sequence file type",
 	      "help": null,
-	      "default": null,
-	      "data": null,
-	      "isMetadata": true,
-	      "aweVariable": "metadata"
-	  },
+	      "default": "fasta",
+	      "data": [ { "value": "fasta", "label": "fasta" },
+			{ "value": "fna", "label": "fna" } ],
+	      "isMetadata": false,
+	      "aweVariable": "FILETYPE" },
 	  { 
 	      "type": "multiselect",
 	      "filetype": [ "fasta", "fna" ],
-	      "label": "select sequence file(s)",
+	      "label": "select sequence file",
 	      "help": null,
 	      "default": null,
 	      "data": null,
 	      "isMetadata": false,
-	      "aweVariable": "infile" }
+	      "aweVariable": "SEQUENCE" }
       ]
   },
   "awe": {
       "tasks": [
 	  {
 	      "cmd": {
-		  "args": "##FILETYPE## ##FILENAME## ##SHOCKNODE## ##SHOCKURL##/##SHOCKNODE##",
+		  "args": "##FILETYPE## ##SEQUENCEFileName## ##SEQUENCE## ##SHOCK##/##SEQUENCE##",
 		  "description": "validate sequence and generate the workspace document for upload to the workspace",
                   "name": "kb_validate_file_and_generate_ws_doc.pl"
 	      },
 	      "dependsOn": [],
 	      "inputs": {
-		  "##FILENAME##": {
-		      "host": "##SHOCKURL##",
-		      "node": "##SHOCKNODE##"
+		  "sequence": {
+		      "host": "##SHOCK##",
+		      "node": "##SEQUENCE##"
 		  }
               },
               "outputs": {
                   "document.json": {
-		      "host": "##SHOCKURL##",
+		      "host": "##SHOCK##",
 		      "node": "-"
 		  }
 	      },
@@ -54,14 +54,14 @@
 	  },
 	  {
 	      "cmd": {
-		  "args": "-type=Communities.DataHandle-1.0 -id=##FILENAME## -data=@document.json -workspace=##WORKSPACE## -token=##TOKEN##",
+		  "args": "-type=Communities.DataHandle-1.0 -id=##SEQUENCEFileName## -data=@document.json -workspace=##WORKSPACE## -token=##TOKEN##",
 		  "description": "create workspace object",
 		  "name": "kb_create_ws_object.pl"
 	      },
-	      "dependsOn": [ 0 ],
+	      "dependsOn": [ "0" ],
               "inputs": {
                   "document.json": {
-                      "host": "##SHOCKURL##",
+                      "host": "##SHOCK##",
                       "node": "-",
                       "origin": "0"
                   }
