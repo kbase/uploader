@@ -50,7 +50,7 @@
 	  },
 	  {
 	    "cmd": {
-		  "args": "--fastafile ##SEQUENCEFileName## --ws-name ##WORKSPACE## ---authtoken ##TOKEN##  --metadatafile ##METADATAFileName##",
+		  "args": "--fastafile ##SEQUENCEFileName## --ws-name ##WORKSPACE## ---authtoken ##TOKEN##  --metadatafile ##METADATAFileName## --ws-url ##WORKSPACEURL##",
 		  "description": "save data as genome typed object",
 		  "name": "save_ws_genome.pl"
 	      },

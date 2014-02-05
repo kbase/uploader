@@ -138,9 +138,10 @@ if (-e $metadatafile) {
     print STDERR "Error: metadata file specified ('$metadatafile') does not exist.\n";
     exit 1;
 }
-#How is meta data instance setup?  The examply in the docs puts everyting in a top level list? why?
+
+#parse metadata json string
 my $metadataparsed = decode_json($metadatastring);
-my $metadataparsed = $metadataparsed->{'basic_info'};
+$metadataparsed = $metadataparsed->{'basic_info'};
 
 # handle metadata processing
 if(defined $metadataparsed->{scientific_name}) {
