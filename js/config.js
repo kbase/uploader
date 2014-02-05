@@ -7,5 +7,5 @@ var RetinaConfig = {
 	   },
     "workspace": "http://140.221.84.209:7058", //"https://kbase.us/services/ws/",
     "authURL": "https://kbase.us/services/authorization/Sessions/Login/",
-    "templates": [ "genome", "metagenome" ]
+    "templates": [ "genome", "metagenome", "KBaseGwasData.GwasPopulationTrait" ]
 };
