@@ -349,7 +349,7 @@
 	}
     };
     
-    widget.validate_data = function (data) {
+    widget.validate_data = function (data, nodisplay) {
 	widget = Retina.WidgetInstances.template_validator[1];
 
 	if (data) {
@@ -358,7 +358,7 @@
 	
 	data = widget.data;
 	
-	if (widget.check_template()) {
+	if (widget.check_template(null, nodisplay)) {
 	    
 	    widget.data_status = [];
 	    widget.data_warnings = [];
@@ -384,10 +384,22 @@
 	    }
 	    
 	    if (widget.data_status.length) {
-		document.getElementById('resultDiv').innerHTML = '<h4>Errors</h4><pre>'+widget.data_status.join("\n")+'</pre><h4>Warnings</h4><pre>'+widget.data_warnings.join("\n")+'</pre>';
-		return false;
+		if (nodisplay) {
+		    return { data: data, errors: widget.data_status, warnings: widget.data_warnings };
+		} else {
+		    document.getElementById('resultDiv').innerHTML = '<h4>Errors</h4><pre>'+widget.data_status.join("\n")+'</pre><h4>Warnings</h4><pre>'+widget.data_warnings.join("\n")+'</pre>';
+		    return false;
+		}
 	    } else {
-		document.getElementById('resultDiv').innerHTML = '<h4>the template is valid</h4>'+(widget.data_warnings.length ? '<h4>Warnings</h4><pre>'+widget.data_warnings.join("\n")+'</pre>' : '')+'<pre>'+JSON.stringify(widget.data,null,2)+'</pre>';
+		if (nodisplay) {
+		    return { data: data, warnings: widget.data_warnings };
+		} else {
+		    document.getElementById('resultDiv').innerHTML = '<h4>the template is valid</h4>'+(widget.data_warnings.length ? '<h4>Warnings</h4><pre>'+widget.data_warnings.join("\n")+'</pre>' : '')+'<pre>'+JSON.stringify(widget.data,null,2)+'</pre>';
+		}
+	    }
+	} else {
+	    if (nodisplay) {
+		return { template: template, errors: widget.template_status, warnings: widget.template_warnings };
 	    }
 	}
     };
@@ -451,17 +463,19 @@
 	    error += " instance "+location;
 	}
 	
-	if (group.hasOwnProperty(fieldname)) {
+	if (group.fields.hasOwnProperty(fieldname)) {
 	    var field = group.fields[fieldname];
 	    if (field.validation.type == 'none') {
-		if (field.mandatory && ! field.length) {
-		    widget.data_status.push('mandatory field '+fieldname+' missing');
+		if (field.mandatory) {
+		    if (value == null) {
+			widget.data_status.push('mandatory field '+fieldname+' missing');
+		    }
 		}
 		return;
 	    } else {
 		if (field.validation.type == 'cv') {
 		    if (! widget.template.cvs[field.validation.value][value]) {
-			widget.data_status.push('field '+fieldname+' was not found in the controlled vocabulary '+field.validation.value);
+			widget.data_status.push('value "'+value+'" of field '+fieldname+' was not found in the controlled vocabulary.');
 		    }
 		    return;
 		} else if (field.validation.type == 'expression') {

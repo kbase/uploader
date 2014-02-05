@@ -14,58 +14,34 @@ use Bio::KBase::workspace::Client;
 use Data::Dumper;
 use  Bio::KBase::AuthToken;
 
-
-############################################
-my $otoken = Bio::KBase::AuthToken->new(
-   user_id => 'kbgwasuser2', password => ''
-);
-my $token = $otoken->token();
-#############################################
-
-
-
-
 umask 000;
 
-
-#if(@ARGV != 4) {
-#  print_usage();
-#  exit __LINE__;
-#}
+if(@ARGV != 5) {
+ print_usage();
+ exit __LINE__;
+}
 
 my $ws_url              = $ARGV[0];
 my $ws1                 = $ARGV[1];
 my $metadata_json_file  = $ARGV[2];
 my $uploaded_trait_file = $ARGV[3];
-#########################################################
-$ws_url                 = 'http://140.221.84.209:7058';
-$ws1                    = 'kbgwasuser2:home';
-$metadata_json_file     = 'json_excel_info.txt';
-$uploaded_trait_file    = 'FLC.txt';
-###########################################################
-
+my $token               = $ARGV[4];
 
 my $wsc = Bio::KBase::workspace::Client->new($ws_url);
-
 
 open (FILE, $metadata_json_file) || &return_error("Could not open file '$metadata_json_file' for reading.");
 my $metadata_json = join ("", <FILE>);
 close (FILE);
 
-
-
-
 my $hash_metadata = from_json($metadata_json);
 
 my $population_obj=$hash_metadata->{'GwasPopulation_obj_id'};
-
 
 my $type = "KBaseGwasData.GwasPopulation";
 my $object_data = $wsc->get_object({id => $population_obj,
                   type => $type,
                   workspace => $ws1,
                   auth => $token});
-
 
 my $ecotype_details  = $object_data->{'data'}{'ecotype_details'};
 my $genome  = $object_data->{'data'}{'genome'};
@@ -76,11 +52,7 @@ foreach my $ecotype (@$ecotype_details){
    $hash_germplasms{$germplasm}++;
 }
 
-
-
-
 open (FILETRAIT, $uploaded_trait_file)|| &return_error("Could not open file '$uploaded_trait_file' for reading.");
-
 
 my @filetrait = <FILETRAIT>;
 shift @filetrait; #skip header line
@@ -103,7 +75,6 @@ if ($list_germplasm_not_found){
   &return_error ("List of germplasms that were not found in the population: $list_germplasm_not_found");
 }
 
-
 my $ws_doc;
 $ws_doc->{'protocol'}=$hash_metadata->{'protocol'};
 $ws_doc->{'GwasPopulation_obj_id'}= $hash_metadata->{'GwasPopulation_obj_id'};
@@ -121,10 +92,8 @@ close OUT;
 
 exit(0);
 
-
-
 sub print_usage {
-    &return_error("USAGE: kb_validate_trait.pl population_data_workspace_url population_data_workspace metadata_json_file uploaded_trait_file shockid shockurl");
+    &return_error("USAGE: kb_validate_trait.pl population_data_workspace_url population_data_workspace metadata_json_file uploaded_trait_file shockid shockurl token");
 }
 
 sub return_error {

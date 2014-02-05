@@ -9,6 +9,16 @@
       "inputs": [
 	  { 
 	      "type": "dropdown",
+	      "filetype": [ "xlsx" ],
+	      "label": "select metadata file",
+	      "help": null,
+	      "default": "fasta",
+	      "data": [ { "value": "fasta", "label": "fasta" },
+			{ "value": "fna", "label": "fna" } ],
+	      "isMetadata": true,
+	      "aweVariable": "METADATA" },
+	  { 
+	      "type": "dropdown",
 	      "filetype": null,
 	      "label": "select sequence file type",
 	      "help": null,
@@ -38,7 +48,7 @@
 	      },
 	      "dependsOn": [],
 	      "inputs": {
-		  "sequence": {
+		  "##SEQUENCEFileName##": {
 		      "host": "##SHOCK##",
 		      "node": "##SEQUENCE##"
 		  }

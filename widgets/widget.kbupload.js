@@ -29,7 +29,8 @@
     widget.sequenceFiles = [];
     widget.jsonTemplates = {};
     widget.templates = {};
-    widget.allowedFileEndings = [ "fna", "fas", "fasta", "sff", "fastq", "txt", "xlsx", "json" ];
+    widget.metaDataValidated = false;
+    widget.allowedFileEndings = [ "fna", "fas", "fasta", "sff", "fastq", "txt", "xlsx" ];
 
     // initial display
     widget.display = function (params) {
@@ -108,7 +109,7 @@
 
 	    // if the file type is allowed, commence the upload
 	    if (allowed) {
-		var progress = widget.progress;
+		var progress = Retina.WidgetInstances.kbupload[1].progress;
 		progress.style.display = "";
 		progress.innerHTML = "";
 		var closeButton = document.createElement('button');
@@ -121,25 +122,25 @@
 		progress.appendChild(fileName);
 		var progressBox = document.createElement('p');
 		progressBox.setAttribute('style', 'margin-bottom: 5px;');
-		widget.progressCurrent = document.createElement('span');
-		widget.progressCurrent.innerHTML = 0;
-		progressBox.appendChild(widget.progressCurrent);
+		Retina.WidgetInstances.kbupload[1].progressCurrent = document.createElement('span');
+		Retina.WidgetInstances.kbupload[1].progressCurrent.innerHTML = 0;
+		progressBox.appendChild(Retina.WidgetInstances.kbupload[1].progressCurrent);
 		var progressTotal = document.createElement('span');
 		progressTotal.innerHTML = ' of '+stm.prettySize(fuDialog.files[0].size)+' complete';
 		progressBox.appendChild(progressTotal);
 		progress.appendChild(progressBox);
 		var pBar = document.createElement('div');
 		pBar.setAttribute('class', 'progress');
-		widget.pBarInner = document.createElement('div');
-		widget.pBarInner.setAttribute('class', 'bar');
-		widget.pBarInner.setAttribute('style', 'width: 0%;');
-		pBar.appendChild(widget.pBarInner);
+		Retina.WidgetInstances.kbupload[1].pBarInner = document.createElement('div');
+		Retina.WidgetInstances.kbupload[1].pBarInner.setAttribute('class', 'bar');
+		Retina.WidgetInstances.kbupload[1].pBarInner.setAttribute('style', 'width: 0%;');
+		pBar.appendChild(Retina.WidgetInstances.kbupload[1].pBarInner);
 		progress.appendChild(pBar);
 		
 		// issue the SHOCK upload command on this file upload dialog, set the progress function callback
 		// to onProgress and the completion callback to uploadComplete (both functions within this widget
-		SHOCK.upload(fuDialog, null, null, widget.uploadComplete, widget.onProgress).then( function() {
-		    widget.progress.style.display = "none";
+		SHOCK.upload(fuDialog, null, null, Retina.WidgetInstances.kbupload[1].uploadComplete, Retina.WidgetInstances.kbupload[1].onProgress).then( function() {
+		    Retina.WidgetInstances.kbupload[1].progress.style.display = "none";
 		});
 	    } else {
 		
@@ -316,7 +317,13 @@ The time between submission and a resulting data object in the workspace may tak
 			html += "<input type='radio' "+checked+"name='submissionField"+iT.inputs[i].aweVariable+"' value='"+iT.inputs[i].data[h].value+"'>";
 		    }
 		} else if (iT.inputs[i].type == "dropdown") {
-		    html += "<label>"+iT.inputs[i].label +'</label><select id="submissionField'+iT.inputs[i].aweVariable+'">';
+		    var metaDataChange = "";
+		    var button = "";
+		    if (iT.inputs[i].isMetadata) {
+			button = "<div class='input-append'>";
+			metaDataChange = ' onchange="Retina.WidgetInstances.kbupload[1].metaDataValidated=false;document.getElementById(\'metadataValidationDiv\').className=\'alert\';document.getElementById(\'metadataValidationDiv\').innerHTML=\'validation pending\';"';
+		    }
+		    html += "<label>"+iT.inputs[i].label +'</label>'+button+'<select id="submissionField'+iT.inputs[i].aweVariable+'"'+metaDataChange+'>';
 		    if (iT.inputs[i].data) {
 			for (var h=0; h<iT.inputs[i].data.length; h++) {
 			    var selected = "";
@@ -327,6 +334,9 @@ The time between submission and a resulting data object in the workspace may tak
 			}
 		    }
 		    html += "</select>";
+		    if (iT.inputs[i].isMetadata) {
+			html += '<button class="btn" onclick="Retina.WidgetInstances.kbupload[1].validateMetadata(document.getElementById(\'submissionField'+iT.inputs[i].aweVariable+'\'));">validate</button></div><div id="metadataValidationDiv" class="alert">validation pending</div>';
+		    }
 		}
 
 		if (iT.inputs[i].help) {
@@ -334,7 +344,7 @@ The time between submission and a resulting data object in the workspace may tak
 		}
 	    }
 
-	    html += '</fieldset><button type="submit" class="btn" onclick="Retina.WidgetInstances.kbupload[1].validateSlots();" style="margin-top: 10px;">submit</button></div>';
+	    html += '</fieldset><button type="submit" id="aweSubmitButton" class="btn" onclick="Retina.WidgetInstances.kbupload[1].validateSlots();" style="margin-top: 10px;">submit</button></div>';
 	}
 
 	// set the content of the target DOM element to the generated HTML
@@ -594,10 +604,20 @@ The time between submission and a resulting data object in the workspace may tak
     widget.validateSlots = function () {
 	widget = Retina.WidgetInstances.kbupload[1];
 
+	// get the interface part of the template
+	var templateName = document.getElementById('subtype').options[document.getElementById('subtype').selectedIndex].text;
+	var iT = widget.templates[templateName]["interface"];
+	var hasMetadata = widget.templates[templateName].hasOwnProperty('metadata');
+
 	// the validation is not yet in place, default to true
 	// in future default to false and perform validation
 	var valid = true;
 	var errors = [];
+
+	if (hasMetadata && ! widget.metaDataValidated) {
+	    errors.push("You must first validate the selected metadata file.");
+	    valid = false;
+	}
 
 	// if the validation succeeds, submit the job to AWE
 	if (valid) {
@@ -635,6 +655,7 @@ The time between submission and a resulting data object in the workspace may tak
 	// retrieve variables to replace
 	var replacements = { "SHOCK": RetinaConfig.shock,
 			     "WORKSPACE": document.getElementById('workspaceSelector').options[document.getElementById('workspaceSelector').selectedIndex].value,
+			     "WORKSPACEURL": RetinaConfig.workspace,
 			     "TOKEN": widget.token };
 	for (var i=0; i<interfaceTemplate.inputs.length; i++) {
 	    if (interfaceTemplate.inputs[i].hasOwnProperty('aweVariable') && interfaceTemplate.inputs[i].aweVariable) {
@@ -689,17 +710,24 @@ The time between submission and a resulting data object in the workspace may tak
 	    processData: false,
 	    data: fd,
 	    success: function(data) {
-		// the submission succeeded, query the current status and feed back to the user
-		jQuery.ajax(RetinaConfig.awe.url+"/job/"+data.data.id, { success: function(data) {
-		    alert('Your submission is complete. The current status is '+data.data.state);
-		    Retina.WidgetInstances.kbupload[1].updateInbox();
-		}});
+
+		// check if there were submission errors
+		if (data.hasOwnProperty('error') && data.error.length) {
+		    alert('Your submission fail');
+		} else {
+		
+		    // the submission succeeded, query the current status and feed back to the user
+		    jQuery.ajax(RetinaConfig.awe.url+"/job/"+data.data.id, { success: function(data) {
+			alert('Your submission is complete. The current status is '+data.data.state);
+			Retina.WidgetInstances.kbupload[1].updateInbox();
+		    }});
+		}
 	    },
 	    error: function(jqXHR, error){
 		// something went wrong with the submission
+		alert('Your submission failed.');
 		console.log( "error" );
 		console.log(jqXHR);
-		console.log(error);
 	    },
 	    headers: { "Datatoken": widget.token },
 	    type: "POST"
@@ -1042,6 +1070,70 @@ The time between submission and a resulting data object in the workspace may tak
 	});
     };
 
+    // check if the selected metadata file contains data valid for the template of this pipeline
+    widget.validateMetadata = function(sel) {
+	widget = Retina.WidgetInstances.kbupload[1];
+
+	// get the template for the selected submission type
+	var templateName = document.getElementById('subtype').options[document.getElementById('subtype').selectedIndex].text;
+	var md = widget.templates[templateName]["metadata"];
+	Retina.WidgetInstances.template_validator[1].template = md;
+
+	// get the shock node id for the selected metadata file
+	var node = sel.options[sel.selectedIndex].value;
+	
+	// get the metadata validation status field
+	var status = document.getElementById('metadataValidationDiv');
+
+	// check if a parsed template is available for this node
+	if (widget.jsonTemplates[node]) {
+
+	    // adjust name / label differences in parsed template
+	    var d = widget.jsonTemplates[node];
+	    for (var i in d) {
+		if (d.hasOwnProperty(i)) {
+		    for (var j in md.groups) {
+			if (md.groups.hasOwnProperty(j)) {
+			    if (md.groups[j].label == i) {
+				d[md.groups[j].name] = {};
+				for (var h in md.groups[j].fields) {
+				    if (md.groups[j].fields.hasOwnProperty(h)) {
+					d[md.groups[j].name][h] = d[i].hasOwnProperty(md.groups[j].fields[h].label) ? d[i][md.groups[j].fields[h].label] : (md.groups[j].fields.hasOwnProperty('default') ? md.groups[j].fields['default'] : null);
+				    }
+				}
+				delete d[i];
+			    }
+			}
+		    }
+		}
+	    }
+
+	    // there is JSON formatted data available, check it agains the template
+	    var retval = Retina.WidgetInstances.template_validator[1].validate_data(d, true);
+	    if (retval.hasOwnProperty('errors')) {
+		status.className = "alert alert-error";
+		status.innerHTML = "<b>Your metadata did not validate</b><br>" + retval.errors.join("<br>");
+		Retina.WidgetInstances.kbupload[1].metaDataValidated = false;
+	    } else {
+		status.className = "alert alert-success";
+		status.innerHTML = "<b>Your metadata is valid</b>";
+		document.getElementById('aweSubmitButton').setAttribute('disabled', 'disabled');
+		SHOCK.create_node_from_JSON(retval.data, function(data){
+		    sel.options[sel.selectedIndex].value = data.id;
+		    Retina.WidgetInstances.kbupload[1].metaDataValidated = true;
+		    document.getElementById('aweSubmitButton').removeAttribute('disabled');
+		});
+	    }
+	    
+	}
+	// there is no template, so the validation failed basic formatting checks
+	else {
+	    status.className = "alert alert-error";
+	    status.innerHTML = "<b>Your metadata did not validate</b><br>Your metdata has an invalid format.<br>Please use the template downloadable via the 'download Excel Template' button.";
+	    Retina.WidgetInstances.kbupload[1].metaDataValidated = false;
+	}
+    };
+
     /*
      * HELPER FUNCTIONS
      */
@@ -1107,19 +1199,28 @@ The time between submission and a resulting data object in the workspace may tak
 	    }
 	    for (var i=0; i<wb.worksheets.length; i++) {
 		var ws = wb.worksheets[i];
+		if (typeof ws.data[0][0] === "undefined") {
+		    return;
+		}
 		if (groups.hasOwnProperty(ws.data[0][0].value)) {
 		    parsedData[ws.data[0][0].value][ws.name] = [];
 		    for (var j=2;j<ws.data.length;j++) {
 			var ds = {};
 			for (var h=0;h<ws.data[0].length; h++) {
-			    ds[ws.data[0][h].value] = ws.data[2][h].value;
+			    if (typeof ws.data[0][h] === "undefined") {
+				return;
+			    }
+			    ds[ws.data[0][h].value] = (typeof ws.data[2][h] === "undefined") ? null : ws.data[2][h].value;
 			}
 			parsedData[ws.data[0][0].value][ws.name].push(ds);	
 		    }
 		} else {
 		    parsedData[ws.name] = {};
 		    for (var h=0;h<ws.data[0].length; h++) {
-			parsedData[ws.name][ws.data[0][h].value] = ws.data[2][h].value;
+			if (typeof ws.data[0][h] === "undefined") {
+			    return;
+			}
+			parsedData[ws.name][ws.data[0][h].value] = (typeof ws.data[2][h] === "undefined") ? null : ws.data[2][h].value;
 		    }
 		} 
 	    }
