@@ -39,14 +39,14 @@
     "tasks": [
       {
         "cmd": {
-          "args": "##WORKSPACEURL## ##WORKSPACE## @##METADATAFileName## @##TRAITMEASUREFileName## ##TOKEN##",
+          "args": "##WORKSPACEURL## ##WORKSPACE## @md_file @##TRAITMEASUREFileName## ##TOKEN##",
           "description": "validate Trait data",
           "name": "kb_validate_trait.pl"
         },
 
          "dependsOn": [],
 	      "inputs": {
-		  "##METADATAFileName##": {
+		  "md_file": {
 		      "host": "##SHOCK##",
 		      "node": "##METADATA##"
 		  },
