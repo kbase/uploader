@@ -10,12 +10,13 @@
 	  { 
 	      "type": "dropdown",
 	      "filetype": [ "xlsx" ],
-	      "label": "select metadata file",
+	      "label": "select metadata file(s)",
 	      "help": null,
 	      "default": null,
 	      "data": null,
 	      "isMetadata": true,
-	      "aweVariable": "METADATA" },
+	      "aweVariable": "metadatafile"
+	  },
 	  { 
 	      "type": "multiselect",
 	      "filetype": [ "fasta", "fna" ],
@@ -24,48 +25,30 @@
 	      "default": null,
 	      "data": null,
 	      "isMetadata": false,
-	      "aweVariable": "infile" }
+	      "aweVariable": "sequence"
+	  }
       ]
   },
   "awe": {
       "tasks": [
 	  {
-	      "cmd": {
-		  "args": "infile",
-		  "description": "validate sequence",
-		  "name": "kb_validate_sequence.pl"
+	    "cmd": {
+		  "args": "--fastafile @sequence --ws-name ##WORKSPACE## ---authtoken ##TOKEN##  --metadatafile @metadatafile --ws-url ##WORKSPACEURL##",
+		  "description": "save data as genome typed object",
+		  "name": "save_ws_genome.pl"
 	      },
-	      "dependsOn": [],
+	      "dependsOn": [ ],
 	      "inputs": {
-		  "infile": {
+		  "sequence": {
 		      "host": "##SHOCK##",
-		      "node": ""
+		      "node": "-"
 		  },
-		  "attributes":
-		  {
-		      "host": "##SHOCK##",
-		      "node": ""
-		  }
-	      },
-	      "outputs": [ "outfile" ],
-	      "taskid": "0",
-	      "totalwork": 1
-	  },
-	  {
-	      "cmd": {
-		  "args": "infile",
-		  "description": "create workspace object",
-		  "name": "kb_create_workspace_object.pl"
-	      },
-	      "dependsOn": [ "0" ],
-	      "inputs": [ "infile" ],
-	      "outputs": {
-		  "outfile": {
+		  "metadatafile": {
 		      "host": "##SHOCK##",
 		      "node": "-"
 		  }
 	      },
-	      "taskid": "1",
+	      "taskid": "0",
 	      "totalwork": 1
 	  }
       ]
@@ -84,7 +67,7 @@
       },
       "groups" : {
           "basic_info":{
-              "name":"basic_info",
+              "name":"BasicGenomeInfo",
               "label":"BasicGenomeInfo",
               "description":"basic genome information",
               "mandatory": true,
