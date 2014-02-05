@@ -212,7 +212,7 @@
 
 	html += '</select>\
 <div id="subtype_description" style="margin-left: 20px; width: 700px;clear: both;"></div>\
-<div class="alert alert-info" style="margin-top: 20px;width: 562px;">\
+<div class="alert alert-info" style="margin-top: 20px;width: 562px; margin-left: 20px;">\
 <b>Note: </b>\
 The time between submission and a resulting data object in the workspace may take some time depending on the selected pipeline. In some cases, like the Microbial Communities pipeline, this might be several days.\
 </div>';
@@ -335,7 +335,7 @@ The time between submission and a resulting data object in the workspace may tak
 		    }
 		    html += "</select>";
 		    if (iT.inputs[i].isMetadata) {
-			html += '<button class="btn" onclick="Retina.WidgetInstances.kbupload[1].validateMetadata(document.getElementById(\'submissionField'+iT.inputs[i].aweVariable+'\'));">validate</button></div><div id="metadataValidationDiv" class="alert">validation pending</div>';
+			html += '<button class="btn" onclick="Retina.WidgetInstances.kbupload[1].validateMetadata(document.getElementById(\'submissionField'+iT.inputs[i].aweVariable+'\'));">validate</button></div><div id="metadataValidationDiv" class="alert" style="width: 562px;">validation pending</div>';
 		    }
 		}
 
