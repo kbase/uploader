@@ -26,20 +26,14 @@ my $scientific_name = 'Unknown';
 my $taxonomy = 'Unknown';
 my $domain = 'Unknown';
 my $genetic_code = 11; #probably it is 11, but this could be different
-my $metadata;
+my $metadatafile;
 
 my $opt = GetOptions (
             "fastafile=s" => \$fastaFile,
             "ws-name=s"   => \$workspaceName,
             "ws-url=s"    => \$workspaceURL,
             "authtoken=s" => \$authToken,
-            "source=s"    => \$source,
-            "source_id=s" => \$source_id,
-            "scientific_name=s" => \$scientific_name,
-            "taxonomy=s"  => \$taxonomy,
-            "domain=s"    => \$domain,
-            "genetic_code=i" => \$genetic_code,
-            "othermetadata=s" => \$metadata,
+            "metadatafile=s"    => \$metadatafile,
             "help|h"      => \$help
             );
 
@@ -54,17 +48,10 @@ my $DESCRIPTION =
       --ws-name [WORKSPACE_NAME]  - the name of the workspace to create the objects
       --authtoken [TOKEN]         - pass the user auth token for the user saving
                                     the genome
+      --metadatafile [FILENAME]   - filename of JSON data with validated metadata fields
       
     Optional Flags
       --ws-url  [URL]             - to set a non-default URL for the workspace service
-      --source_id [ID]            - specify source ID of the sequence and genome (default='')
-      --source [SOURCE]           - specify source of the data (default='kbase')
-      --scientific_name [NAME]    - scientific name of the organism (default='Unknown')
-      --taxonomy [TAXONOMY]       - taxonomy of the organism (default='Unknown')
-      --doman [DOMAIN]            - domain of the organism (default='Unknown')
-      --genetic_code [CODE]       - genetic code of the organism (default=11)
-      --othermetadata [JSON]      - key value pairs of extra meta data in JSON, key/values
-                                    must be strings
       --help, -h                  - print this usage information.
 ";
 
@@ -87,10 +74,11 @@ if(!defined($authToken)) {
     print STDERR "Error: flag '--authtoken' must be defined. Run with --help for usage.\n";
     exit 0;
 }
-my $metadataParsed;
-if (defined($metadata)) {
-    $metadataParsed = decode_json($metadata);
+if(!defined($metadatafile)) {
+    print STDERR "Error: flag '--metadatafile' must be defined. Run with --help for usage.\n";
+    exit 0;
 }
+
 
 
 
@@ -104,7 +92,7 @@ my $ws = Bio::KBase::workspace::Client->new($workspaceURL, token=>$authToken );
 my $idserver = Bio::KBase::IDServer::Client->new($idserverURL);
 
 
-# make sure it exists
+# make sure it exists and read in the sequence file
 my $fasta_data = []; my $seq; my $header;
 if (-e $fastaFile) {
     # read it to our data structure
@@ -136,6 +124,41 @@ if (-e $fastaFile) {
     exit 1;
 }
 
+#read in the metadata file
+my $metadatastring = "";
+if (-e $metadatafile) {
+    my $FILEHANDLE;
+    open($FILEHANDLE,"<$metadatafile") or die "Error: cannot read metadata file ('$metadatafile')\n";
+    while (my $line = <$FILEHANDLE>) {
+        chomp($line);
+        $metadatastring .= $line;
+    }
+    close $FILEHANDLE;
+} else {
+    print STDERR "Error: metadata file specified ('$metadatafile') does not exist.\n";
+    exit 1;
+}
+#How is meta data instance setup?  The examply in the docs puts everyting in a top level list? why?
+my $metadataparsedInList = decode_json($metadatastring);
+my $metadataparsed = @$metadataparsedInList[0];
+
+# handle metadata processing
+if(defined $metadataparsed->{scientific_name}) {
+    $scientific_name = $metadataparsed->{scientific_name}
+}
+if(defined $metadataparsed->{source}) {
+    $source = $metadataparsed->{source}
+}
+if (defined $metadataparsed->{"source-id"}) {
+    $source_id = $metadataparsed->{"source-id"}
+}
+if (defined $metadataparsed->{domain}) {
+    $domain = $metadataparsed->{domain}
+}
+if (defined $metadataparsed->{taxonomy}) {
+    $taxonomy = $metadataparsed->{taxonomy}
+}
+
 
 # reserve IDs
 my $kbase_genome_id_prefix="kb|g";
@@ -150,9 +173,11 @@ my $contigset_id = $kbase_contig_set_id_prefix.".".$csNumber;
 
 #set up contig object
 my $contigs = []; my $contigLengths = []; my $sumContigLengths = 0;
+my $GC_count = 0;
 my $fullseq = ''; #used to compute md5 sum of entire contig set
 for my $data (@$fasta_data) {
-    my $cLen = length($data->{seq})+0;
+    my $seq = $data->{seq};
+    my $cLen = length($seq)+0;
     my $cNumber = $idserver->allocate_id_range($kbase_genome_contig_id_prefix, 1);
     my $contig_id = $kbase_genome_contig_id_prefix.".".$cNumber;
     my $contig = {
@@ -165,8 +190,10 @@ for my $data (@$fasta_data) {
     push @$contigs, $contig;
     push @$contigLengths, $cLen+0;
     $sumContigLengths += $cLen+0;
+    $GC_count++ while ($seq =~ m/[GC]/gi);
     $fullseq .= $data->{seq};
 }
+my $GC = $GC_count / $sumContigLengths;
 
 # setup the contig set
 my $contigsetMD5 = md5_hex($fullseq);
@@ -194,9 +221,9 @@ my $saveObjectsParams = {
 			   }
 			]
 	};
-if (defined($metadataParsed)) {
-    $saveObjectsParams->{objects}[0]->{meta} = $metadataParsed;
-}
+#if (defined($metadataParsed)) {
+#    $saveObjectsParams->{objects}[0]->{meta} = $metadataParsed;
+#}
 my $output;
 eval { $output = $ws->save_objects($saveObjectsParams); };
 if($@) {
@@ -218,7 +245,7 @@ my $genome = {
     scientific_name  => $scientific_name,
     domain           => $domain,
     genetic_code     => $genetic_code,
-    dna_size         => $sumContigLengths,
+    dna_size         => $sumContigLengths+0,
     num_contigs      => scalar(@$contigs),
     contig_lengths   => $contigLengths,
     #contig_ids;   #these are external ids, could be another parameter
@@ -226,7 +253,7 @@ my $genome = {
     source_id        => $source_id,
     md5              => $contigsetMD5,
     taxonomy         => $taxonomy,
-    #gc_content       => ; # we should compute this at some point
+    gc_content       => $GC+0,
     #complete;
     #publications;
     features         => [],
@@ -247,9 +274,9 @@ $saveObjectsParams = {
 			   }
 			]
 	};
-if (defined($metadataParsed)) {
-    $saveObjectsParams->{objects}[0]->{meta} = $metadataParsed;
-}
+#if (defined($metadataParsed)) {
+#    $saveObjectsParams->{objects}[0]->{meta} = $metadataParsed;
+#}
 eval { $output = $ws->save_objects($saveObjectsParams); };
 if($@) {
     print "Object could not be saved!\n";
