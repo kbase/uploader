@@ -41,7 +41,7 @@
         "cmd": {
           "args": "##WORKSPACEURL## ##WORKSPACE## @##METADATAFileName## @##TRAITMEASUREFileName## ##TOKEN##",
           "description": "validate Trait data",
-          "name": "kb_validate_KBaseGwasData.GwasPopulationTrait.pl"
+          "name": "kb_validate_trait.pl"
         },
 
          "dependsOn": [],
