@@ -34,6 +34,7 @@ my $metadata_json = join ("", <FILE>);
 close (FILE);
 
 my $hash_metadata = from_json($metadata_json);
+$hash_metadata = $hash_metadata->{'BasicTraitInfo'};
 
 my $population_obj=$hash_metadata->{'GwasPopulation_obj_id'};
 
