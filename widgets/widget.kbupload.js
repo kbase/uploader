@@ -712,8 +712,8 @@ The time between submission and a resulting data object in the workspace may tak
 	    success: function(data) {
 
 		// check if there were submission errors
-		if (data.hasOwnProperty('error') && data.error.length) {
-		    alert('Your submission fail');
+		if (data.hasOwnProperty('error') && data.error && data.error.length) {
+		    alert('Your submission failed');
 		} else {
 		
 		    // the submission succeeded, query the current status and feed back to the user
