@@ -139,8 +139,8 @@ if (-e $metadatafile) {
     exit 1;
 }
 #How is meta data instance setup?  The examply in the docs puts everyting in a top level list? why?
-my $metadataparsedInList = decode_json($metadatastring);
-my $metadataparsed = @$metadataparsedInList[0];
+my $metadataparsed = decode_json($metadatastring);
+my $metadataparsed = $metadataparsed->{'basic_info'};
 
 # handle metadata processing
 if(defined $metadataparsed->{scientific_name}) {
@@ -158,7 +158,6 @@ if (defined $metadataparsed->{domain}) {
 if (defined $metadataparsed->{taxonomy}) {
     $taxonomy = $metadataparsed->{taxonomy}
 }
-
 
 # reserve IDs
 my $kbase_genome_id_prefix="kb|g";
