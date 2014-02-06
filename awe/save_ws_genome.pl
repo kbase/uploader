@@ -64,19 +64,19 @@ if(defined($help)) {
 # check for mandatory flags
 if(!defined($fastaFile)) {
     print STDERR "Error: flag '--fastafile' must be defined. Run with --help for usage.\n";
-    exit 0;
+    exit 1;
 }
 if(!defined($workspaceName)) {
     print STDERR "Error: flag '--ws-name' must be defined. Run with --help for usage.\n";
-    exit 0;
+    exit 1;
 }
 if(!defined($authToken)) {
     print STDERR "Error: flag '--authtoken' must be defined. Run with --help for usage.\n";
-    exit 0;
+    exit 1;
 }
 if(!defined($metadatafile)) {
     print STDERR "Error: flag '--metadatafile' must be defined. Run with --help for usage.\n";
-    exit 0;
+    exit 1;
 }
 
 
@@ -140,7 +140,7 @@ if (-e $metadatafile) {
 }
 #How is meta data instance setup?  The examply in the docs puts everyting in a top level list? why?
 my $metadataparsed = decode_json($metadatastring);
-my $metadataparsed = $metadataparsed->{'basic_info'};
+$metadataparsed = $metadataparsed->{'basic_info'};
 
 # handle metadata processing
 if(defined $metadataparsed->{scientific_name}) {
