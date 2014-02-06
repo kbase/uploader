@@ -1,11 +1,11 @@
 var RetinaConfig = {
-    "shock": "http://shock1.chicago.kbase.us",//"http://140.221.84.214:7078", //"http://140.221.84.144:8000"
+    "shock": "http://shock1.chicago.kbase.us",
     "awe": { "url": "http://140.221.85.36:8000",
-	     "pipeline": "kb-metagenome",
+	     "pipeline": "kb-upload",
 	     "project": "data-importer",
 	     "clientgroups": "kb_upload"
 	   },
-    "workspace": "http://140.221.84.209:7058", //"https://kbase.us/services/ws/",
+    "workspace": "https://kbase.us/services/ws/",
     "authURL": "https://kbase.us/services/authorization/Sessions/Login/",
     "templates": [ "genome", "metagenome", "GWAS_population_trait" ]
 };
