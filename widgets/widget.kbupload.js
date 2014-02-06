@@ -414,7 +414,7 @@ The time between submission and a resulting data object in the workspace may tak
 		}
 	    } else {
 		var laststate = item.tasks[item.tasks.length - 1].state;
-		if (laststate != "deleted") {
+		if (item.state != "deleted" && laststate != "deleted") {
 		    subs.push([ item.info.name, Retina.WidgetInstances.kbupload[1].dots(item.tasks), item.info.submittime, (laststate == "completed") ? item.info.completedtime : "-"]);
 		}
 	    }
