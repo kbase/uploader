@@ -10,7 +10,7 @@
 	  { 
 	      "type": "dropdown",
 	      "filetype": [ "xlsx" ],
-	      "label": "select metadata file(s)",
+	      "label": "select genome metadata file",
 	      "help": null,
 	      "default": null,
 	      "data": null,
@@ -67,7 +67,7 @@
       },
       "groups" : {
           "basic_info":{
-              "name":"BasicGenomeInfo",
+              "name":"basic_info",
               "label":"BasicGenomeInfo",
               "description":"basic genome information",
               "mandatory": true,

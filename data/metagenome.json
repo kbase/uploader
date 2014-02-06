@@ -10,7 +10,7 @@
 	  { 
 	      "type": "dropdown",
 	      "filetype": [ "xlsx" ],
-	      "label": "select metadata file",
+	      "label": "select metagenome metadata file",
 	      "help": null,
 	      "default": "fasta",
 	      "data": [ { "value": "fasta", "label": "fasta" },
@@ -156,11 +156,6 @@
 		  },
 		  "PI_lastname": {
 		      "description": "Administrative contact last name",
-		      "type": "text",
-		      "mandatory": true
-		  },
-		  "project_name": {
-		      "description": "Name of the project within which the sequencing was organized",
 		      "type": "text",
 		      "mandatory": true
 		  },

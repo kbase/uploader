@@ -1,5 +1,5 @@
 {
-  "name": "KBaseGwasData.GwasPopulationTrait",
+  "name": "GWAS population trait",
   "interface": {
     "intro": {
       "title": " Gwas population trait data submission",
@@ -13,7 +13,7 @@
         "filetype": [
           "xlsx"
         ],
-        "label": "select metadata file(s)",
+        "label": "select GWAS Population Trait metadata file",
         "help": null,
         "default": null,
         "data": null,

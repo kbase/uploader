@@ -26,9 +26,9 @@
     widget.user = null;
     widget.token = null;
     widget.newWorkspaceName = "";
-    widget.sequenceFiles = [];
     widget.jsonTemplates = {};
     widget.templates = {};
+    widget.validatedTemplates = {};
     widget.metaDataValidated = false;
     widget.allowedFileEndings = [ "fna", "fas", "fasta", "sff", "fastq", "txt", "xlsx" ];
 
@@ -250,6 +250,10 @@ The time between submission and a resulting data object in the workspace may tak
 	var html = "<table style='margin-bottom: 5px;'><tr><td class='section'><h4>Not Implemented</h4><p>This submission type has not yet been implemented.</p></td></tr></table>";
 	var templateName = sel.options[sel.selectedIndex].text;
 
+	// remove the previous metadata validations
+	widget.validatedTemplates = {};
+	widget.metaDataValidated = false;
+
 	// if there is a template, use it to fill the html
 	if (widget.templates.hasOwnProperty(templateName)) {
 
@@ -335,7 +339,7 @@ The time between submission and a resulting data object in the workspace may tak
 		    }
 		    html += "</select>";
 		    if (iT.inputs[i].isMetadata) {
-			html += '<button class="btn" onclick="Retina.WidgetInstances.kbupload[1].validateMetadata(document.getElementById(\'submissionField'+iT.inputs[i].aweVariable+'\'));">validate</button></div><div id="metadataValidationDiv" class="alert" style="width: 562px;">validation pending</div>';
+			html += '<button class="btn" onclick="Retina.WidgetInstances.kbupload[1].validateMetadata(document.getElementById(\'submissionField'+iT.inputs[i].aweVariable+'\'));">validate <b>'+templateName+'</b> metadata</button></div><div id="metadataValidationDiv" class="alert" style="width: 562px;">validation pending</div>';
 		    }
 		}
 
@@ -569,6 +573,7 @@ The time between submission and a resulting data object in the workspace may tak
 	else {
 	    document.getElementById('unauthorized_section').style.display = "";
 	    document.getElementById('authorized_section').style.display = "none";
+	    document.getElementById('fileOptions').innerHTML = "";
 	    Workspace.init();
 	}
     };
@@ -1072,40 +1077,79 @@ The time between submission and a resulting data object in the workspace may tak
 
     // check if the selected metadata file contains data valid for the template of this pipeline
     widget.validateMetadata = function(sel) {
-	widget = Retina.WidgetInstances.kbupload[1];
 
 	// get the template for the selected submission type
 	var templateName = document.getElementById('subtype').options[document.getElementById('subtype').selectedIndex].text;
-	var md = widget.templates[templateName]["metadata"];
-	Retina.WidgetInstances.template_validator[1].template = md;
+	var md = Retina.WidgetInstances.template_validator[1].check_template(Retina.WidgetInstances.kbupload[1].templates[templateName]["metadata"], 1);
+	md = md.template;
+	Retina.WidgetInstances.template_validator[1].template = jQuery.extend(true, {}, Retina.WidgetInstances.kbupload[1].templates[templateName]["metadata"]);
 
 	// get the shock node id for the selected metadata file
 	var node = sel.options[sel.selectedIndex].value;
+
+	// check if this has already been transformed to JSON
+	if (Retina.WidgetInstances.kbupload[1].validatedTemplates.hasOwnProperty(node)) {
+	    Retina.WidgetInstances.kbupload[1].metaDataValidated = true;
+	    status.className = "alert alert-success";
+	    status.innerHTML = "<b>Your metadata is valid</b>";
+	    return;
+	}
 	
 	// get the metadata validation status field
 	var status = document.getElementById('metadataValidationDiv');
 
 	// check if a parsed template is available for this node
-	if (widget.jsonTemplates[node]) {
+	if (Retina.WidgetInstances.kbupload[1].jsonTemplates[node]) {
 
 	    // adjust name / label differences in parsed template
-	    var d = widget.jsonTemplates[node];
+	    var d = jQuery.extend(true, {}, Retina.WidgetInstances.kbupload[1].jsonTemplates[node]);
 	    for (var i in d) {
 		if (d.hasOwnProperty(i)) {
 		    for (var j in md.groups) {
 			if (md.groups.hasOwnProperty(j)) {
 			    if (md.groups[j].label == i) {
-				d[md.groups[j].name] = {};
-				for (var h in md.groups[j].fields) {
-				    if (md.groups[j].fields.hasOwnProperty(h)) {
-					d[md.groups[j].name][h] = d[i].hasOwnProperty(md.groups[j].fields[h].label) ? d[i][md.groups[j].fields[h].label] : (md.groups[j].fields.hasOwnProperty('default') ? md.groups[j].fields['default'] : null);
+				if (i != j) {
+				    d[j] = {};
+				    for (var h in md.groups[j].fields) {
+					if (md.groups[j].fields.hasOwnProperty(h)) {
+					    d[j][h] = d[i].hasOwnProperty(md.groups[j].fields[h].label) ? d[i][md.groups[j].fields[h].label] : (md.groups[j].fields[h].hasOwnProperty('default') ? md.groups[j].fields[h]['default'] : null);
+					    if (h != md.groups[j].fields[h].label) {
+						delete d[md.groups[j].fields[h].label];
+					    }
+					}
+				    }
+				    delete d[i];
+				} else {
+				    for (var h in md.groups[j].fields) {
+					if (md.groups[j].fields.hasOwnProperty(h)) {
+					    if (h != md.groups[j].fields[h].label) {
+						d[i][h] = d[i].hasOwnProperty(md.groups[j].fields[h].label) ? d[i][md.groups[j].fields[h].label] : (md.groups[j].fields[h].hasOwnProperty('default') ? md.groups[j].fields[h]['default'] : null);
+						delete d[i][md.groups[j].fields[h].label];
+					    } else {
+						if (! d[i].hasOwnProperty(h)) {
+						    d[i][h] = md.groups[j].fields[h].hasOwnProperty('default') ? md.groups[j].fields[h]['default'] : null;
+						}
+					    }
+					}
 				    }
 				}
-				delete d[i];
 			    }
 			}
 		    }
 		}
+	    }
+
+	    // check if any data matched the template
+	    var num = 0;
+	    for (var i in d) {
+		num++;
+		break;
+	    }
+	    if (num == 0) {
+		status.className = "alert alert-error";
+		status.innerHTML = "<b>Your metadata did not match the template.</b><br>Did you select a metadata file that corresponds to the template?";
+		Retina.WidgetInstances.kbupload[1].metaDataValidated = false;
+		return;
 	    }
 
 	    // there is JSON formatted data available, check it agains the template
@@ -1119,6 +1163,8 @@ The time between submission and a resulting data object in the workspace may tak
 		status.innerHTML = "<b>Your metadata is valid</b>";
 		document.getElementById('aweSubmitButton').setAttribute('disabled', 'disabled');
 		SHOCK.create_node_from_JSON(retval.data, function(data){
+		    var xls = sel.options[sel.selectedIndex].value;
+		    Retina.WidgetInstances.kbupload[1].validatedTemplates[data.id] = xls;
 		    sel.options[sel.selectedIndex].value = data.id;
 		    Retina.WidgetInstances.kbupload[1].metaDataValidated = true;
 		    document.getElementById('aweSubmitButton').removeAttribute('disabled');

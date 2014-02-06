@@ -364,8 +364,10 @@
 	    widget.data_warnings = [];
 	    
 	    if (typeof data == 'object') {
+		var num = 0;
 		for (var i in data) {
 		    if (data.hasOwnProperty(i)) {
+			num++;
 			if (widget.template.groups.hasOwnProperty(i)) {
 			    var item = data[i];
 			    var group = widget.template.groups[i];
@@ -378,6 +380,10 @@
 			    widget.data_status.push('group '+i+' does not exist in template');
 			}
 		    }
+		}
+		
+		if (num == 0) {
+		    widget.data_status.push('no data to validate');
 		}
 	    } else {
 		widget.data_status.push('the data is not an object');
@@ -415,7 +421,7 @@
 		    } else if (group.subgroups.hasOwnProperty(h)) {
 			widget.check_group(item[h], widget.template.groups[h]);
 		    } else {
-			widget.data_status.push('field '+h+' in does not exist in template');
+			widget.data_warnings.push('field '+h+' in does not exist in template');
 		    }
 		}
 	    }
