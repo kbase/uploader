@@ -33,13 +33,13 @@
       "tasks": [
 	  {
 	    "cmd": {
-		  "args": "--fastafile @sequence --ws-name ##WORKSPACE## --authtoken ##TOKEN##  --metadatafile @metadatafile --ws-url ##WORKSPACEURL##",
+		  "args": "--fastafile @##SEQUENCEFileName## --ws-name ##WORKSPACE## --authtoken ##TOKEN##  --metadatafile @metadatafile --ws-url ##WORKSPACEURL##",
 		  "description": "save data as genome typed object",
 		  "name": "save_ws_genome.pl"
 	      },
 	      "dependsOn": [ ],
 	      "inputs": {
-		  "sequence": {
+		  "##SEQUENCEFileName##": {
 		      "host": "##SHOCK##",
 		      "node": "##SEQUENCE##"
 		  },
