@@ -942,7 +942,10 @@ The time between submission and a resulting data object in the workspace may tak
 		    if (group.hasOwnProperty('subgroups')) {
 
 			// fillSubgroup is a separate function because it is called recursively to handle deep nesting
-			[ group, wb, wbNum ] = Retina.WidgetInstances.kbupload[1].fillSubgroup(template, group, wb, wbNum);
+			var array = Retina.WidgetInstances.kbupload[1].fillSubgroup(template, group, wb, wbNum);
+			group = array[0];
+			wb = array[1];
+			wbNum = array[2];
 		    }
 		}
 	    }
@@ -1003,7 +1006,10 @@ The time between submission and a resulting data object in the workspace may tak
 	
 		// if there are subgroups, make a recursive call to this function
 		if (subgroup.hasOwnProperty('subgroups')) {
-		    [ group, wb, wbNum ] = Retina.WidgetInstances.kbupload[1].fillSubgroup(template, subgroup, wb, wbNum);
+		    var array = Retina.WidgetInstances.kbupload[1].fillSubgroup(template, subgroup, wb, wbNum);
+		    group = array[0];
+		    wb = array[1];
+		    wbNum = array[2];
 		}
 	    }
 	}
