@@ -3,7 +3,7 @@
   "interface": {
     "intro": {
       "title": " Gwas population trait data submission",
-      "text": "Trait data submission requires a text file with trait values and filled out metadata Excel spreadsheet.",
+      "text": "Trait data submission requires a text file with trait values and filled out metadata Excel spreadsheet. The upload requires that the GwasPopulation_obj_id field in the metadata file is filled in correctly with an existing workspace object ID.",
       "excel": true,
       "json": false
     },
