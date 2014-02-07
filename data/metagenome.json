@@ -99,7 +99,7 @@
 	      "mandatory": true,
 	      "description": "project",
 	      "fields": {
-		  "name": {
+		  "project_name": {
 		      "description": "project name",
 		      "type": "string",
 		      "mandatory": 1
@@ -107,7 +107,7 @@
 		  "id": {
 		      "description": "project id",
 		      "type": "string",
-		      "mandatory": 1
+		      "mandatory": false
 		  },
 		  "firstname": {
 		      "description": "Technical contact first name",
