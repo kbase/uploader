@@ -1,4 +1,6 @@
-KBase DataImporter v0.9
+KBase DataImporter v1.0
+
+Quickstart Guide
 
 To run open
 
@@ -14,10 +16,93 @@ $pipeline_name.json
 
 and $pipeline_name must be included into the list in the config.js file.
 
-More documentation is available here
 
-https://docs.google.com/document/d/1xnab7vsPZsjTehR9f4qvdLaLP623RZ3zB3VomCy7Dj4/edit?usp=sharing
+Overview
 
-Documentation on metadata templates is available here
+The KBase Data Importer allows users to upload data for use in KBase. To prevent misuse of online available data storage capacity, the DataImporter implements a two step procedure. First a user uploads their data into a staging area. In this temporary space, the user can perform basic operations on the uploaded files, like deletion, sequence file type conversion or de-multiplexing. Then they select a data processing pipeline which validates the file integrity for the scientific procedures the user wants to perform with the data. Feedback about progress, success or failure of the pipeline, is available to the user in the interface. Upon successful completion, the chosen pipeline will create a workspace object in a user chosen (possibly newly created) workspace.
+Interface
 
-https://docs.google.com/document/d/1u4agYSSK7hrn-eOLk7GvNjxb8et_cu0dWEhVB_iq4lI/edit?usp=sharing
+The DataImporter is presented on a standalone HTML page. Until the user has authenticated against the KBase auth service via a login screen, no functionality is available.
+
+After login the user is presented with their staging area. An upload button opens a browse file dialog. Only certain file suffixes are allowed for upload. If a valid file is chosen, a progress window is opened. After successful completion of the file upload, the file will appear in the staging area.
+
+If a file in the staging area is selected, file details as well as all functions available on this file are presented next to the staging area file box.
+
+Section two of the interface offers a dropdown box of available pipelines. Selecting a pipeline will display the required slots the user has to fill in before they can submit, as well as some brief informational text about the selection. If the pipeline requires metadata, the user can validate the selected metadata file before submission time. Since this is the most error-prone part of a submission, instant feedback is vital.
+
+When all slots are filled in, the user can proceed to submission. The pipeline will run asynchronously. The user may return to the page at any time or use an update button to monitor progress of the submission.
+
+Technology
+
+Authentication
+
+The login widget is using the KBase authentication service to identify the current user.
+Staging Area
+Files uploaded to the staging area are stored in SHOCK with the acls of the current user. Special attributes determine the status as staging area files.
+
+Pipelines
+
+The available pipelines are defined by pipeline structure files shipped with the DataImporter. New pipelines can be added by adding pipeline structure files. These files have different sections that describe:
+The interface sections displayed to the user, including the informational text, file slot fields and additional input fields. Workspace selection / creation is included automatically for all pipelines.
+The AWE workflow template is filled in with the user inputs and then sent to an AWE instance for execution.
+The metadata template (if any): Buttons that make the template available to the user in JSON format or as an Excel spreadsheet are available in the interface section. Metadata slots can be automatically validated in the interface in real time.
+Pipeline Execution
+The commands that are listed in an AWE workflow template must be implemented and made available on the AWE instance.
+Pipeline Structure Files
+A pipeline structure file is a JSON document with the following structure
+
+{ name: “MyCustomPipeline”,
+  awe: AWE-WORKFLOW-TEMPLATE,
+  metadata: METADATA-TEMPLATE,
+  interface: {
+    intro: {
+      title: “My Custom Pipeline”,
+      text: “This is a short description of my pipeline. You may use <p></p> , <a href=’myurl’ target=_blank></a> and <b></b> tags in here.”,
+      excel: true, // do you want excel metadata spreadsheets?
+      json: true,  // do you want JSON metadata templates?
+            },
+    inputs: [ { 
+      type: “multiselect | text | checkbox | radio | dropdown”,
+      filetype: [ “fasta”, “fna” ], // list of suffixes allowed (file or dropdown)
+      label: “my input field”,
+      help: “helptext on my input field”, // optional
+      default: “default value”,
+      data: [ { value: “val1”, label: “label 1” }, { … } ],
+      isMetadata: false, // true will display validate button
+      aweVariable: “myWorkflowTargetVariable” }, { … } ]
+    }
+}
+
+The format of the metadata template as well as examples are available here.
+An example AWE workflow template is available here. Documentation is available in section 4 of this document.
+AWE Workflow Document Quick Reference
+The fields of the workflow are defined as follows:
+
+The template is a JSON object with two top-level attributes:
+
+Info
+This optional attribute is for informational purposes only and can be reused for any pipeline.
+
+Task List
+This attribute is specific for different pipelines. It contains a separate entry for each task. Task entries have the following required fields:
+
+Taskid - a number to representing this task
+
+Cmd.name - the command name
+
+Cmd.args -  if it is the input file, use @ before the word representing the input file.
+
+DependOn - the ids of the tasks it depends on
+
+Input - the input file name, shock host, and node, if node is unknown (for some intermediate files), use “-“ or just omit the “node” field
+
+Output - the output filename, shock host, and node, if node is unknown (for some intermediate files), use “-“  just omit the “node” field
+
+PartInfo - specify which input and output will be split and merged. If there is only one input and one output, this field can be omitted.
+
+TotalWork - the number of work units to be split for this task.
+
+MaxWorkSize - controls the maximum size of each split in MB. This is prioritized over the TotalWork attribute
+
+Hashtags (#xxx) can be used as variables that will be replaced by the command line arguments of the job submitter.
+
