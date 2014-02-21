@@ -81,7 +81,8 @@
                       "type":"text",
                       "default":"Unknown",
                       "mandatory":"true",
-                      "validation": { "type":"none" }
+                      "validation": { "type":"none" },
+		      "index": 0
                   },
                   "domain": {
                       "name":"domain",
@@ -90,7 +91,8 @@
                       "type":"text",
                       "default":"Unknown",
                       "mandatory":"true",
-                      "validation": { "type":"cv", "value":"domain" }
+                      "validation": { "type":"cv", "value":"domain" },
+		      "index": 1
                   },
                   "taxonomy": {
                       "name":"taxonomy",
@@ -99,7 +101,8 @@
                       "type":"text",
                       "default":"Unknown",
                       "mandatory":"true",
-                      "validation": { "type":"none" }
+                      "validation": { "type":"none" },
+		      "index": 2
                   },
 		  "source": {
                       "name":"source",
@@ -108,7 +111,8 @@
                       "type":"text",
                       "default":"kbase",
                       "mandatory":"true",
-                      "validation": { "type":"none" }
+                      "validation": { "type":"none" },
+		      "index": 3
                   },
 		  "source-id": {
                       "name":"source-id",
@@ -117,7 +121,8 @@
                       "type":"text",
                       "default":"",
                       "mandatory":"false",
-                      "validation": { "type":"none" }
+                      "validation": { "type":"none" },
+		      "index": 4
                   }
               }
           }
