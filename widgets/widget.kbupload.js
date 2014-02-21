@@ -918,22 +918,26 @@ The time between submission and a resulting data object in the workspace may tak
 		    var fieldNum = 0;
 
 		    // iterate over the fields of the group
-		    for (var h in group.fields) {
-			if (group.fields.hasOwnProperty(h)) {
+		    var flist = Retina.values(group.fields);
+		    if (flist[0].hasOwnProperty('index')) {
+			flist.sort(Retina.propSort('index'));
+		    } else {
+			flist.sort(Retina.propSort('label'));
+		    }
+		    for (var h=0; h<flist.length; h++) {
 
-			    // the setCell function takes the workbook indes, the column number,
-			    // the row number and the cell value
-			    var field = group.fields[h];
-			    wb.setCell(wbNum, fieldNum, 0, field.label);
-
-			    // if there is a description, put it in the second row
-			    if (field.description) {
-				wb.setCell(wbNum, fieldNum, 1, field.description);
-			    }
-
-			    // increment the field counter
-			    fieldNum++;
+			// the setCell function takes the workbook indes, the column number,
+			// the row number and the cell value
+			var field = flist[h];
+			wb.setCell(wbNum, fieldNum, 0, field.label);
+			
+			// if there is a description, put it in the second row
+			if (field.description) {
+			    wb.setCell(wbNum, fieldNum, 1, field.description);
 			}
+			
+			// increment the field counter
+			fieldNum++;
 		    }
 		    // increment the worksheet counter
 		    wbNum++;
