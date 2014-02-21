@@ -12,4 +12,6 @@ VERSION: 0.9 (Released 2/7/2014)
 VERSION: 1.0 (Not released)
 ------------------------------------------
 - updated documentation
-- added AWE script template
+- added well commented AWE script template
+- added well commented structure template
+- added sorting to metadata fields
