@@ -560,6 +560,12 @@ The time between submission and a resulting data object in the workspace may tak
     widget.authenticated = function (isAuthenticated, token) {
 	widget = Retina.WidgetInstances.kbupload[1];
 
+	// clear file information box
+	document.getElementById('fileOptions').innerHTML = "";
+
+	// clear the token
+	widget.token = null;
+
 	// a user is successfully authenticated, show the appropriate data
 	if (isAuthenticated) {
 	    document.getElementById('authorized_section').style.display = "";
@@ -572,8 +578,7 @@ The time between submission and a resulting data object in the workspace may tak
 	// the user logged out or login failed, hide content that requires authentication
 	else {
 	    document.getElementById('unauthorized_section').style.display = "";
-	    document.getElementById('authorized_section').style.display = "none";
-	    document.getElementById('fileOptions').innerHTML = "";
+	    document.getElementById('authorized_section').style.display = "none";	    
 	    Workspace.init();
 	}
     };
