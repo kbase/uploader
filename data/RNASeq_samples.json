@@ -44,12 +44,16 @@
       "tasks": [
 	  {
 	    "cmd": {
-		  "args": "##FILETYPE## @##SEQUENCEFileName## ##SEQUENCE## ##SHOCK##/##SEQUENCE##",
+		  "args": "##FILETYPE## @##SEQUENCEFileName## @md_file ##SEQUENCE## ##SHOCK##/##SEQUENCE##",
 		  "description": "validate sequence and generate the workspace document for upload to the workspace",
 		  "name": "kb_create_rnaseq_fastq.pl"
 	      },
 	      "dependsOn":[],
 	      "inputs": {
+		"md_file": {
+                      "host": "##SHOCK##",
+                      "node": "##METADATA##"
+                  }, 
 		  "##SEQUENCEFileName##": {
 		      "host": "##SHOCK##",
 		      "node": "##SEQUENCE##"
@@ -97,15 +101,25 @@
           }
       	},
       	  "groups" : {
-          "project":{
-              "name":"project",
-              "label":"project",
-              "description":"project",
+          "BasicSampleInfo":{
+              "name":"BasicSampleInfo",
+              "label":"BasicSampleInfo",
+              "description":"RNASeq Sample Information",
               "mandatory": true,
               "toplevel":true,
-              "subgroups": {},
+	      "type":"list",
               "fields":{
-	          "experiment-title": {
+		  "sample_name": {
+                      "name":"sample_name",
+                      "label":"Sample_Name",
+                      "description":"Sample name of the RNASeq Sample",
+                      "type":"text",
+                      "default":"Unknown",
+                      "mandatory":"true",
+                      "validation": { "type":"none" },
+                      "index": 0
+                  },
+	          "title": {
                       "name":"title",
                       "label":"Title",
                       "description":"Title of the Experiment",
@@ -115,9 +129,9 @@
                       "validation": { "type":"none" },
                       "index": 0
                   }, 
-		  "source-id": {
-                      "name":"source-id",
-                      "label":"Source ID",
+		  "source_id": {
+                      "name":"source_id",
+                      "label":"Source_ID",
                       "description":"the ID of the sample sequence in the source database",
                       "type":"text",
                       "default":"",
@@ -137,7 +151,7 @@
                   },
 		  "ext_source_date": {
                       "name":"ext_source_date",
-                      "label":"Source Date",
+                      "label":"Source_Date",
                       "description":"Source Submission Date",
                       "type":"text",
                       "default":"Unknown",
@@ -155,10 +169,10 @@
                       "validation": { "type":"cv", "value":"domain" },
 		      "index": 1
                   },
- 		   "scientific_name": {
-                      "name":"scientific_name",
-                      "label":"Scientific Name",
-                      "description":"the scientific name of the read sample",
+ 		   "genome": {
+                      "name":"genome",
+                      "label":"Genome",
+                      "description":"the scientific name of the genome",
                       "type":"text",
                       "default":"Unknown",
                       "mandatory":"true",
@@ -177,9 +191,9 @@
                   },
 		 "condition": {
                       "name":"conditions",
-                      "label":"Sample Condition",
+                      "label":"Sample_Condition",
                       "description":"Sample prepartion conditions/Treatment",
-                      "type":"text",
+                      "type":"list",
                       "default":"Unknown",
                       "mandatory":"true",
                       "validation": { "type":"none" },

@@ -12,15 +12,16 @@ use JSON;
 
 umask 000;
 
-if(@ARGV != 4) {
+if(@ARGV != 5) {
   print_usage();
   exit __LINE__;
 }
 
 my $filetype = $ARGV[0];
 my $filename = $ARGV[1];
-my $s_id = $ARGV[2];
-my $s_url = $ARGV[3];
+my $meta_file= $ARGV[2];
+my $s_id = $ARGV[3];
+my $s_url = $ARGV[4];
 
 my @array = ('fastq', 'fq');
 if (! grep( /^$filetype$/, @array)) {
@@ -51,13 +52,70 @@ if ( $line !~ /^>/ && $line !~ /^@/ ) {
     &return_error("Not a valid fasta or fastq file.");
 }
 
-my $ws_doc;
-$ws_doc->{name} = $filename;
-$ws_doc->{created} = POSIX::strftime("%Y-%m-%d %H:%M:%S", localtime);
-$ws_doc->{type} = $filetype;
-$ws_doc->{shock_ref}{shock_id} = $s_id;
-$ws_doc->{shock_ref}{shock_url} = $s_url;
 
+open (FILE, $meta_file) || &return_error("Could not open file '$meta_file' for reading.");
+my $meta_json = join ("", <FILE>);
+close (FILE);
+
+open OUT1, "<test.txt" || &return_error("Could not open file test.txt for reading.");
+
+my $flag = 0;
+my $meta = from_json($meta_json);
+$meta = $meta->{'BasicSampleInfo'};
+my $ws_doc  = {} ;
+foreach my $hash (@{$meta}) {
+	if($hash->{'sample_name'} eq $filename){
+	$flag = 1;
+	}else {
+	$flag = 0;
+	}
+ 	if( $flag == 1 ) {	 
+        foreach my $key (keys %{$hash}) {
+			#print $key ."\t". $hash->{$key} . "\n";
+			$ws_doc->{'name'} = $filename; 
+			$ws_doc->{'type'} = "fastq";
+			$ws_doc->{'created'} = POSIX::strftime("%Y-%m-%d %H:%M:%S", localtime);
+		        $ws_doc->{shock_ref}{shock_id} = $s_id;
+                	$ws_doc->{shock_ref}{shock_url} = $s_url;	
+				if( $key eq 'tissue') {
+                       	#		 my $part = $hash->{'Tissue'};
+			#		 my @tissue = ();
+                       	#		 foreach my $val (@{$part}){
+                        #       		#print "Tissue -> " . $val . "\n";
+                        #        	 push(@tissue,$val);
+			#		}
+			#	print "\ntissue is " . @tissue ."\n";
+				$ws_doc->{'metadata'}{'tissue'} = $hash->{$key};
+				}elsif ( $key eq 'sample_name'){
+					$ws_doc->{'name'} = $hash->{$key};
+				}elsif ($key eq 'title') {
+				     $ws_doc->{'metadata'}{'title'} = $hash->{$key};
+				}elsif($key eq 'condition'){
+                                	my $part = $hash->{'condition'};
+                                	my @condn = ();
+	                                foreach my $val (@{$part}){
+        	                        #print "Tissue -> " . $val . "\n";
+                	                push(@condn,$val);
+ 					}
+				@{$ws_doc->{'metadata'}{'condition'}} = @condn;
+				}elsif($key eq 'domain'){
+				     $ws_doc->{'metadata'}{'domain'} = $hash->{$key};
+ 			        }elsif( $key eq 'source_id'){
+				     $ws_doc->{'metadata'}{'source_id'} = $hash->{$key};
+				}elsif( $key eq 'ext_source_date'){
+				     $ws_doc->{'metadata'}{'ext_source_date'} = $hash->{$key};
+				}elsif( $key eq 'genome'){
+                                     $ws_doc->{'metadata'}{'ref_genome'} = $hash->{$key};
+			 	}elsif( $key eq 'source'){
+                                     $ws_doc->{'metadata'}{'source'} = $hash->{$key};	
+ 				}else {
+				      print "\n" . $key . " I am in else block \n";
+				      #&return_error("Invalid metadata file");	
+				}	
+		}
+	}		
+}
+#close OUT1;
 open OUT, ">document.json" || &return_error("Cannot open document.json for writing.");
 print OUT to_json($ws_doc, { ascii => 1, pretty => 1 });
 close OUT;
@@ -65,7 +123,7 @@ close OUT;
 exit(0);
 
 sub print_usage {
-    &return_error("USAGE: kb_create_rnaseq_fastq.pl filetype filename shockid shockurl");
+    &return_error("USAGE: kb_create_rnaseq_fastq.pl filetype filename metadatafilename shockid shockurl");
 }
 
 sub return_error {
