@@ -1289,7 +1289,6 @@ The time between submission and a resulting data object in the workspace may tak
 
     	    // the file is loaded, create a javascript object from it
     	    var wb = xlsx(xhr.response);
-
 	    var type = document.getElementById('subtype').options[document.getElementById('subtype').selectedIndex].text;
 	    var template = Retina.WidgetInstances.kbupload[1].templates[type].metadata;
 
@@ -1310,6 +1309,9 @@ The time between submission and a resulting data object in the workspace may tak
 		if (groups.hasOwnProperty(ws.data[0][0].value)) {
 		    parsedData[ws.data[0][0].value][ws.name] = [];
 		    for (var j=2;j<ws.data.length;j++) {
+			if (ws.data[j].length == 0) {
+			    break;
+			}
 			var ds = {};
 			for (var h=0;h<ws.data[0].length; h++) {
 			    if (typeof ws.data[0][h] === "undefined") {
@@ -1322,6 +1324,9 @@ The time between submission and a resulting data object in the workspace may tak
 		} else {
 		    parsedData[ws.name] = [];
 		    for (var j=2;j<ws.data.length;j++) {
+			if (ws.data[j].length == 0) {
+			    break;
+			}
 			var dataRow = {};
 			for (var h=0;h<ws.data[0].length; h++) {
 			    if (typeof ws.data[0][h] === "undefined") {
