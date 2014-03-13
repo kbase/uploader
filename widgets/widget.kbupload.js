@@ -30,7 +30,7 @@
     widget.templates = {};
     widget.validatedTemplates = {};
     widget.metaDataValidated = false;
-    widget.allowedFileEndings = [ "fna", "fas", "fasta", "sff", "fastq", "txt", "xlsx" ];
+    widget.allowedFileEndings = [ "fna", "fas", "fasta", "sff", "fastq", "fq", "txt", "xlsx" ];
 
     // initial display
     widget.display = function (params) {
