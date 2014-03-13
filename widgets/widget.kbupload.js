@@ -30,7 +30,7 @@
     widget.templates = {};
     widget.validatedTemplates = {};
     widget.metaDataValidated = false;
-    widget.allowedFileEndings = [ "fna", "fas", "fasta", "sff", "fastq", "txt", "xlsx" ];
+    widget.allowedFileEndings = [ "fna", "fas", "fasta", "sff", "fastq", "fq", "txt", "xlsx" ];
 
     // initial display
     widget.display = function (params) {
@@ -253,6 +253,17 @@ The time between submission and a resulting data object in the workspace may tak
 	// remove the previous metadata validations
 	widget.validatedTemplates = {};
 	widget.metaDataValidated = false;
+	widget.jsonTemplates = {};
+
+	// recompute all metadata files agains the current template
+	for (var i in stm.DataStore.inbox) {
+	    if (stm.DataStore.inbox.hasOwnProperty(i)) {
+		var data = stm.DataStore.inbox[i];
+		if (data.attributes.hasOwnProperty('name') && data.attributes.name.match(/\.xlsx$/)) {
+		    widget.excelToJSON(i);
+		}
+	    }
+	}
 
 	// if there is a template, use it to fill the html
 	if (widget.templates.hasOwnProperty(templateName)) {
@@ -1124,25 +1135,55 @@ The time between submission and a resulting data object in the workspace may tak
 			if (md.groups.hasOwnProperty(j)) {
 			    if (md.groups[j].label == i) {
 				if (i != j) {
-				    d[j] = {};
-				    for (var h in md.groups[j].fields) {
-					if (md.groups[j].fields.hasOwnProperty(h)) {
-					    d[j][h] = d[i].hasOwnProperty(md.groups[j].fields[h].label) ? d[i][md.groups[j].fields[h].label] : (md.groups[j].fields[h].hasOwnProperty('default') ? md.groups[j].fields[h]['default'] : null);
-					    if (h != md.groups[j].fields[h].label) {
-						delete d[md.groups[j].fields[h].label];
+				    if (d[i].hasOwnProperty(0)) {
+					d[j] = [];
+					for (var k=0;k<d[i].length;k++) {
+					    d[j][k] = {};
+					    for (var h in md.groups[j].fields) {
+						if (md.groups[j].fields.hasOwnProperty(h)) {
+						    d[j][k][h] = d[i][k].hasOwnProperty(md.groups[j].fields[h].label) ? d[i][k][md.groups[j].fields[h].label] : (md.groups[j].fields[h].hasOwnProperty('default') ? md.groups[j].fields[h]['default'] : null);
+						}
 					    }
 					}
+					delete d[i];
+				    } else {
+					d[j] = {};
+					for (var h in md.groups[j].fields) {
+					    if (md.groups[j].fields.hasOwnProperty(h)) {
+						d[j][h] = d[i].hasOwnProperty(md.groups[j].fields[h].label) ? d[i][md.groups[j].fields[h].label] : (md.groups[j].fields[h].hasOwnProperty('default') ? md.groups[j].fields[h]['default'] : null);
+						if (h != md.groups[j].fields[h].label) {
+						    delete d[md.groups[j].fields[h].label];
+						}
+					    }
+					}
+					delete d[i];
 				    }
-				    delete d[i];
 				} else {
-				    for (var h in md.groups[j].fields) {
-					if (md.groups[j].fields.hasOwnProperty(h)) {
-					    if (h != md.groups[j].fields[h].label) {
-						d[i][h] = d[i].hasOwnProperty(md.groups[j].fields[h].label) ? d[i][md.groups[j].fields[h].label] : (md.groups[j].fields[h].hasOwnProperty('default') ? md.groups[j].fields[h]['default'] : null);
-						delete d[i][md.groups[j].fields[h].label];
-					    } else {
-						if (! d[i].hasOwnProperty(h)) {
-						    d[i][h] = md.groups[j].fields[h].hasOwnProperty('default') ? md.groups[j].fields[h]['default'] : null;
+				    if (d[i].hasOwnProperty(0)) {
+					for (var k=0;k<d[i].length;k++) {
+					    for (var h in md.groups[j].fields) {
+						if (md.groups[j].fields.hasOwnProperty(h)) {
+						    if (h != md.groups[j].fields[h].label) {
+							d[i][k][h] = d[i][k].hasOwnProperty(md.groups[j].fields[h].label) ? d[i][k][md.groups[j].fields[h].label] : (md.groups[j].fields[h].hasOwnProperty('default') ? md.groups[j].fields[h]['default'] : null);
+							delete d[i][k][md.groups[j].fields[h].label];
+						    } else {
+							if (! d[i][k].hasOwnProperty(h)) {
+							    d[i][k][h] = md.groups[j].fields[h].hasOwnProperty('default') ? md.groups[j].fields[h]['default'] : null;
+							}
+						    }
+						}
+					    }
+					}
+				    } else {
+					for (var h in md.groups[j].fields) {
+					    if (md.groups[j].fields.hasOwnProperty(h)) {
+						if (h != md.groups[j].fields[h].label) {
+						    d[i][h] = d[i].hasOwnProperty(md.groups[j].fields[h].label) ? d[i][md.groups[j].fields[h].label] : (md.groups[j].fields[h].hasOwnProperty('default') ? md.groups[j].fields[h]['default'] : null);
+						    delete d[i][md.groups[j].fields[h].label];
+						} else {
+						    if (! d[i].hasOwnProperty(h)) {
+							d[i][h] = md.groups[j].fields[h].hasOwnProperty('default') ? md.groups[j].fields[h]['default'] : null;
+						    }
 						}
 					    }
 					}
@@ -1167,7 +1208,7 @@ The time between submission and a resulting data object in the workspace may tak
 		return;
 	    }
 
-	    // there is JSON formatted data available, check it agains the template
+	    // there is JSON formatted data available, check it against the template
 	    var retval = Retina.WidgetInstances.template_validator[1].validate_data(d, true);
 	    if (retval.hasOwnProperty('errors')) {
 		status.className = "alert alert-error";
@@ -1248,6 +1289,8 @@ The time between submission and a resulting data object in the workspace may tak
 
     	    // the file is loaded, create a javascript object from it
     	    var wb = xlsx(xhr.response);
+	    var type = document.getElementById('subtype').options[document.getElementById('subtype').selectedIndex].text;
+	    var template = Retina.WidgetInstances.kbupload[1].templates[type].metadata;
 
     	    var parsedData = {};
 	    var groups = {};
@@ -1266,6 +1309,9 @@ The time between submission and a resulting data object in the workspace may tak
 		if (groups.hasOwnProperty(ws.data[0][0].value)) {
 		    parsedData[ws.data[0][0].value][ws.name] = [];
 		    for (var j=2;j<ws.data.length;j++) {
+			if (ws.data[j].length == 0) {
+			    break;
+			}
 			var ds = {};
 			for (var h=0;h<ws.data[0].length; h++) {
 			    if (typeof ws.data[0][h] === "undefined") {
@@ -1276,16 +1322,26 @@ The time between submission and a resulting data object in the workspace may tak
 			parsedData[ws.data[0][0].value][ws.name].push(ds);	
 		    }
 		} else {
-		    parsedData[ws.name] = {};
-		    for (var h=0;h<ws.data[0].length; h++) {
-			if (typeof ws.data[0][h] === "undefined") {
-			    return;
+		    parsedData[ws.name] = [];
+		    for (var j=2;j<ws.data.length;j++) {
+			if (ws.data[j].length == 0) {
+			    break;
 			}
-			parsedData[ws.name][ws.data[0][h].value] = (typeof ws.data[2] === "undefined" || typeof ws.data[2][h] === "undefined") ? null : ws.data[2][h].value;
+			var dataRow = {};
+			for (var h=0;h<ws.data[0].length; h++) {
+			    if (typeof ws.data[0][h] === "undefined") {
+				return;
+			    }
+			    dataRow[ws.data[0][h].value] = (typeof ws.data[j] === "undefined" || typeof ws.data[j][h] === "undefined") ? null : ws.data[j][h].value;
+			}
+			parsedData[ws.name].push(dataRow);
+		    }
+		    if (!(template.groups.hasOwnProperty(ws.name) && template.groups[ws.name].hasOwnProperty('type') && template.groups[ws.name].type == 'list')) {
+			parsedData[ws.name] = parsedData[ws.name][0];
 		    }
 		} 
 	    }
-	    widget = Retina.WidgetInstances.kbupload[1].jsonTemplates[xhr.id] = parsedData;
+	   Retina.WidgetInstances.kbupload[1].jsonTemplates[xhr.id] = parsedData;
     	}
 
     	xhr.send();

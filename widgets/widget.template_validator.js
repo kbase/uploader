@@ -435,12 +435,12 @@
 		if (typeof item[h] == 'object') {
 		    for (var j in item[h]) {
 			if (item[h].hasOwnProperty(j)) {
-			    if (widget.template.fields.hasOwnProperty(j)) {
+			    if (group.fields.hasOwnProperty(j)) {
 				widget.check_field(item[h][j], j, group, h);
 			    } else if (group.subgroups.hasOwnProperty(j)) {
 				widget.check_group(item[h][j], widget.template.groups[j]);
 			    } else {
-				widget.data_status.push('field '+h+' in does not exist in template');
+				widget.data_status.push('field '+j+' in does not exist in template');
 			    }
 			}
 		    }

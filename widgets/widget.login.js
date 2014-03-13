@@ -13,6 +13,7 @@
     };
 
     widget.callback = null;
+    widget.cookiename = "kbauth";
     widget.authResources = { "default": "KBase",
 			     "KBase": { "icon": "KBase_favicon.ico",
 					"prefix": "kbgo4711" } };
@@ -38,7 +39,7 @@
 	}
 
 	// check for a cookie
-	var udata = jQuery.cookie('kbauth');
+	var udata = jQuery.cookie(widget.cookiename);
 	if (udata) {
 	    udata = JSON.parse(udata);
 	    if (udata.hasOwnProperty('uname') && udata.uname != null) {
