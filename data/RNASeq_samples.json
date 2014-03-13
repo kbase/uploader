@@ -102,12 +102,13 @@
       	},
       	  "groups" : {
           "BasicSampleInfo":{
+	      "type": "list",
               "name":"BasicSampleInfo",
               "label":"BasicSampleInfo",
               "description":"RNASeq Sample Information",
               "mandatory": true,
               "toplevel":true,
-	      "type":"list",
+	      "subgroups":{},
               "fields":{
 		  "sample_name": {
                       "name":"sample_name",
