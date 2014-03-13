@@ -70,7 +70,7 @@
               },
 	      {
 		"cmd":{ 
-			"args": "-type=KBaseRNASeqData.RNASeqSample-0.1 -id=##SEQUENCEFileName## -data=@document.json -workspace=##WORKSPACE## -token=##TOKEN##",
+			"args": "-type=KBaseRNASeqData.RNASeqSample -id=##SEQUENCEFileName## -data=@document.json -workspace=##WORKSPACE## -token=##TOKEN##",
                 	"description": "create workspace object",
                 	"name": "kb_create_ws_object.pl"	    
 	      	      },
@@ -90,7 +90,7 @@
   	"metadata": {
       	"name": "RNASeqSampleMetaData",
       	"label": "KBase RNA-Seq Metadata Template",
-      	"description": "Template to specify meta data for loading a sample RNA-Seq reads FASTQ file to a KBaseRNASeqData.RNASeqSampleMetaData-0.1. typed object in a workspace",
+      	"description": "Template to specify meta data for loading a sample RNA-Seq reads FASTQ file to a KBaseRNASeqData.RNASeqSampleMetaData. typed object in a workspace",
      	 "cvs": {
           "domain": {
 	      "Plants":true,
