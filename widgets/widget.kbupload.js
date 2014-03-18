@@ -670,7 +670,8 @@ The time between submission and a resulting data object in the workspace may tak
 	    "name": subSel,
 	    "project": RetinaConfig.awe.project,
 	    "user": widget.user,
-	    "clientgroups": RetinaConfig.awe.clientgroups
+	    "clientgroups": RetinaConfig.awe.clientgroups,
+	    "noretry": true
 	};
 
 	// retrieve variables to replace
