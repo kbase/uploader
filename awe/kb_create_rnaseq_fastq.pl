@@ -94,12 +94,12 @@ foreach my $hash (@{$meta}) {
 				     $ws_doc->{'metadata'}{'title'} = $hash->{$key};
 				}elsif($key eq 'condition'){
                                 	my $part = $hash->{'condition'};
-                                	my @condn = ();
-	                                foreach my $val (@{$part}){
-        	                        #print "Tissue -> " . $val . "\n";
-                	                push(@condn,$val);
- 					}
-				@{$ws_doc->{'metadata'}{'condition'}} = @condn;
+                                	# my @condn = ();
+	                                # foreach my $val (@{$part}){
+        	                        # #print "Tissue -> " . $val . "\n";
+                	                # push(@condn,$val);
+ 					# }
+					@{$ws_doc->{'metadata'}{'condition'}} = $part;
 				}elsif($key eq 'domain'){
 				     $ws_doc->{'metadata'}{'domain'} = $hash->{$key};
  			        }elsif( $key eq 'source_id'){
