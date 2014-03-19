@@ -9,7 +9,6 @@ no warnings('once');
 
 use POSIX;
 use JSON;
-use File::Basename;
 
 umask 000;
 
@@ -20,7 +19,6 @@ if(@ARGV != 5) {
 
 my $filetype = $ARGV[0];
 my $filename = $ARGV[1];
-my $filebasename = basename($filename);
 my $meta_file= $ARGV[2];
 my $s_id = $ARGV[3];
 my $s_url = $ARGV[4];
@@ -66,20 +64,21 @@ my $meta = from_json($meta_json);
 $meta = $meta->{'BasicSampleInfo'};
 my $ws_doc  = {} ;
 foreach my $hash (@{$meta}) {
-	if($hash->{'sample_name'} eq $filebasename){
+	if($hash->{'sample_name'} eq $filename){
 	$flag = 1;
 	}else {
 	$flag = 0;
 	}
  	if( $flag == 1 ) {	 
-	  $ws_doc->{'name'} = $filename; 
-	  $ws_doc->{'type'} = "fastq";
-	  $ws_doc->{'created'} = POSIX::strftime("%Y-%m-%d %H:%M:%S", localtime);
-	  $ws_doc->{shock_ref}{shock_id} = $s_id;
-	  $ws_doc->{shock_ref}{shock_url} = $s_url;	
-	  foreach my $key (keys %{$hash}) {
+		$ws_doc->{'name'} = $filename; 
+		$ws_doc->{'type'} = "fastq";
+		$ws_doc->{'created'} = POSIX::strftime("%Y-%m-%d %H:%M:%S", localtime);
+	  	$ws_doc->{shock_ref}{shock_id} = $s_id;
+                $ws_doc->{shock_ref}{shock_url} = $s_url;	
+                
+		foreach my $key (keys %{$hash}) {
 			#print $key ."\t". $hash->{$key} . "\n";
-				if( $key eq 'tissue') {
+			if( $key eq 'tissue') {
                        	#		 my $part = $hash->{'Tissue'};
 			#		 my @tissue = ();
                        	#		 foreach my $val (@{$part}){
@@ -87,33 +86,39 @@ foreach my $hash (@{$meta}) {
                         #        	 push(@tissue,$val);
 			#		}
 			#	print "\ntissue is " . @tissue ."\n";
-				$ws_doc->{'metadata'}{'tissue'} = $hash->{$key};
-				}elsif ( $key eq 'sample_name'){
-					$ws_doc->{'name'} = $hash->{$key};
-				}elsif ($key eq 'title') {
-				     $ws_doc->{'metadata'}{'title'} = $hash->{$key};
-				}elsif($key eq 'condition'){
-                                	my $part = $hash->{'condition'};
-                                	# my @condn = ();
-	                                # foreach my $val (@{$part}){
-        	                        # #print "Tissue -> " . $val . "\n";
-                	                # push(@condn,$val);
- 					# }
-					@{$ws_doc->{'metadata'}{'condition'}} = $part;
-				}elsif($key eq 'domain'){
-				     $ws_doc->{'metadata'}{'domain'} = $hash->{$key};
- 			        }elsif( $key eq 'source_id'){
-				     $ws_doc->{'metadata'}{'source_id'} = $hash->{$key};
-				}elsif( $key eq 'ext_source_date'){
-				     $ws_doc->{'metadata'}{'ext_source_date'} = $hash->{$key};
-				}elsif( $key eq 'genome'){
-                                     $ws_doc->{'metadata'}{'ref_genome'} = $hash->{$key};
-			 	}elsif( $key eq 'source'){
-                                     $ws_doc->{'metadata'}{'source'} = $hash->{$key};	
- 				}else {
-				      print "\n" . $key . " I am in else block \n";
+			  	$ws_doc->{'metadata'}{'tissue'} = $hash->{$key};
+			}elsif ( $key eq 'sample_name'){
+				$ws_doc->{'name'} = $hash->{$key};
+			}elsif ($key eq 'title') {
+				$ws_doc->{'metadata'}{'title'} = $hash->{$key};
+			}elsif($key eq 'condition'){   
+				#my @part = split(',',$hash->{'condition'});
+				my $part = $hash->{'condition'};
+				my @condn = ();
+                               	#print (ref $hash->{'condition'});
+				if(ref $part eq 'ARRAY'){
+					foreach my $val (@{$part}){
+        	                        	#print "Condition -> " . $val . "\n";
+                	               	 	push(@condn,$val);
+ 					} 
+				}else{
+					push(@condn,$part);   
+				}
+			 	@{$ws_doc->{'metadata'}{'condition'}} = @condn;
+			}elsif($key eq 'domain'){
+				$ws_doc->{'metadata'}{'domain'} = $hash->{$key};
+ 			}elsif( $key eq 'source_id'){
+				$ws_doc->{'metadata'}{'source_id'} = $hash->{$key};
+			}elsif( $key eq 'ext_source_date'){
+				$ws_doc->{'metadata'}{'ext_source_date'} = $hash->{$key};
+			}elsif( $key eq 'genome'){
+                                $ws_doc->{'metadata'}{'ref_genome'} = $hash->{$key};
+			}elsif( $key eq 'source'){
+                                $ws_doc->{'metadata'}{'source'} = $hash->{$key};	
+ 			}else {
+				print "\n" . $key . " I am in else block \n";
 				      #&return_error("Invalid metadata file");	
-				}	
+			}	
 		}
 	}		
 }
