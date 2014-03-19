@@ -9,6 +9,7 @@ no warnings('once');
 
 use POSIX;
 use JSON;
+use File::Basename;
 
 umask 000;
 
@@ -19,6 +20,7 @@ if(@ARGV != 5) {
 
 my $filetype = $ARGV[0];
 my $filename = $ARGV[1];
+my $filebasename = basename($filename);
 my $meta_file= $ARGV[2];
 my $s_id = $ARGV[3];
 my $s_url = $ARGV[4];
@@ -64,13 +66,13 @@ my $meta = from_json($meta_json);
 $meta = $meta->{'BasicSampleInfo'};
 my $ws_doc  = {} ;
 foreach my $hash (@{$meta}) {
-	if($hash->{'sample_name'} eq $filename){
+	if($hash->{'sample_name'} eq $filebasename){
 	$flag = 1;
 	}else {
 	$flag = 0;
 	}
  	if( $flag == 1 ) {	 
-        foreach my $key (keys %{$hash}) {
+#        foreach my $key (keys %{$hash}) {
 			#print $key ."\t". $hash->{$key} . "\n";
 			$ws_doc->{'name'} = $filename; 
 			$ws_doc->{'type'} = "fastq";
@@ -113,7 +115,7 @@ foreach my $hash (@{$meta}) {
 				      #&return_error("Invalid metadata file");	
 				}	
 		}
-	}		
+#	}		
 }
 #close OUT1;
 open OUT, ">document.json" || &return_error("Cannot open document.json for writing.");
