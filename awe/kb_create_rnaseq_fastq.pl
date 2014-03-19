@@ -72,13 +72,13 @@ foreach my $hash (@{$meta}) {
 	$flag = 0;
 	}
  	if( $flag == 1 ) {	 
-#        foreach my $key (keys %{$hash}) {
+	  $ws_doc->{'name'} = $filename; 
+	  $ws_doc->{'type'} = "fastq";
+	  $ws_doc->{'created'} = POSIX::strftime("%Y-%m-%d %H:%M:%S", localtime);
+	  $ws_doc->{shock_ref}{shock_id} = $s_id;
+	  $ws_doc->{shock_ref}{shock_url} = $s_url;	
+	  foreach my $key (keys %{$hash}) {
 			#print $key ."\t". $hash->{$key} . "\n";
-			$ws_doc->{'name'} = $filename; 
-			$ws_doc->{'type'} = "fastq";
-			$ws_doc->{'created'} = POSIX::strftime("%Y-%m-%d %H:%M:%S", localtime);
-		        $ws_doc->{shock_ref}{shock_id} = $s_id;
-                	$ws_doc->{shock_ref}{shock_url} = $s_url;	
 				if( $key eq 'tissue') {
                        	#		 my $part = $hash->{'Tissue'};
 			#		 my @tissue = ();
@@ -115,7 +115,7 @@ foreach my $hash (@{$meta}) {
 				      #&return_error("Invalid metadata file");	
 				}	
 		}
-#	}		
+	}		
 }
 #close OUT1;
 open OUT, ">document.json" || &return_error("Cannot open document.json for writing.");
