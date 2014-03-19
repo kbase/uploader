@@ -677,8 +677,7 @@ The time between submission and a resulting data object in the workspace may tak
 	// retrieve variables to replace
 	var replacements = { "SHOCK": RetinaConfig.shock,
 			     "WORKSPACE": document.getElementById('workspaceSelector').options[document.getElementById('workspaceSelector').selectedIndex].value,
-			     "WORKSPACEURL": RetinaConfig.workspace,
-			     "TOKEN": widget.token };
+			     "WORKSPACEURL": RetinaConfig.workspace };
 	for (var i=0; i<interfaceTemplate.inputs.length; i++) {
 	    if (interfaceTemplate.inputs[i].hasOwnProperty('aweVariable') && interfaceTemplate.inputs[i].aweVariable) {
 		var item = document.getElementById('submissionField'+interfaceTemplate.inputs[i].aweVariable);

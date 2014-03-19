@@ -99,7 +99,7 @@
     // only the tasks section of the workflow must be given, the rest will be automatically generated
     // variables named in the inputs part of the interface section can be used anywhere within the workflow
     // and must be encased with ## tags
-    // the variables WORKSPACE, WORKSPACEURL, SHOCK and TOKEN are reserved variables that will always be filled
+    // the variables WORKSPACE, WORKSPACEURL and SHOCK are reserved variables that will always be filled
     // automatically
     "awe": {
 
@@ -112,7 +112,7 @@
 
 		    // the arguments passed to the command
 		    // file arguments must be prefixed with @ and their name is defined in the inputs section below
-		    "args": "--inputfile @inputfile --ws-name ##WORKSPACE## --authtoken ##TOKEN##  --metadatafile @metadatafile --ws-url ##WORKSPACEURL##",
+		    "args": "--inputfile @inputfile --ws-name ##WORKSPACE## --metadatafile @metadatafile --ws-url ##WORKSPACEURL##",
 
 		    // this description will be shown in the hoverover of the stage dot in the status
 		    // display of the pipeline jobs
@@ -121,7 +121,10 @@
 		    // this is the name of the AWE script called
 		    // this script must exist on the AWE client machine. If you create your own AWE scripts,
 		    // they should be placed in the awe directory in the uploader repository
-		    "name": "myAWEscript.pl"
+		    "name": "myAWEscript.pl",
+
+                    // this puts the KBase Authentication token into the environment of the script
+                    "environ": {"KB_AUTH_TOKEN":""}
 		},
 
 		// taskid of the tasks that need to be successfully completed before this task

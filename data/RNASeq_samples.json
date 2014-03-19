@@ -46,7 +46,8 @@
 	    "cmd": {
 		  "args": "##FILETYPE## @##SEQUENCEFileName## @md_file ##SEQUENCE## ##SHOCK##/##SEQUENCE##",
 		  "description": "validate sequence and generate the workspace document for upload to the workspace",
-		  "name": "kb_create_rnaseq_fastq.pl"
+		  "name": "kb_create_rnaseq_fastq.pl",
+	  "environ": {"KB_AUTH_TOKEN":""}
 	      },
 	      "dependsOn":[],
 	      "inputs": {
@@ -70,9 +71,10 @@
               },
 	      {
 		"cmd":{ 
-			"args": "-type=KBaseRNASeqData.RNASeqSample -id=##SEQUENCEFileName## -data=@document.json -workspace=##WORKSPACE## -token=##TOKEN##",
+			"args": "-type=KBaseRNASeqData.RNASeqSample -id=##SEQUENCEFileName## -data=@document.json -workspace=##WORKSPACE##",
                 	"description": "create workspace object",
-                	"name": "kb_create_ws_object.pl"	    
+                	"name": "kb_create_ws_object.pl",
+	  "environ": {"KB_AUTH_TOKEN":""}	    
 	      	      },
 	       "dependsOn": [ "0" ],
 	       "inputs":{
