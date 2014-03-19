@@ -15,7 +15,7 @@ my $type      = "";
 my $id        = "";
 my $data      = "";
 my $workspace = "";
-my $token     = "";
+my $token     = $ENV{KB_AUTH_TOKEN};
 my $metadata  = "";
 my $url       = "http://140.221.84.209:7058";
 
@@ -24,7 +24,6 @@ my $options = GetOptions ("type=s"      => \$type,
 			  "data=s"      => \$data,
 			  "url=s"       => \$url,
 			  "workspace=s" => \$workspace,
-			  "token=s"     => \$token,
 			  "metadata=s"  => \$metadata
 			 );
 

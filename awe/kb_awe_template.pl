@@ -10,7 +10,7 @@ use Bio::KBase::workspace::Client;
 
 #  read default options
 my $workspaceName;
-my $authToken;
+my $authToken = $ENV{KB_AUTH_TOKEN};
 my $workspaceURL = "https://kbase.us/services/ws";
 
 # read custom options

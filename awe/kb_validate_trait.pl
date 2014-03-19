@@ -16,7 +16,7 @@ use  Bio::KBase::AuthToken;
 
 umask 000;
 
-if(@ARGV != 5) {
+if(@ARGV != 4) {
  print_usage();
  exit __LINE__;
 }
@@ -25,7 +25,7 @@ my $ws_url              = $ARGV[0];
 my $ws1                 = $ARGV[1];
 my $metadata_json_file  = $ARGV[2];
 my $uploaded_trait_file = $ARGV[3];
-my $token               = $ARGV[4];
+my $token               = $ENV{KB_AUTH_TOKEN};
 
 my $wsc = Bio::KBase::workspace::Client->new($ws_url);
 

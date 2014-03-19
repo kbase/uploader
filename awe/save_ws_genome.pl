@@ -13,7 +13,7 @@ use Bio::KBase::IDServer::Client;
 ####  Read options
 my $fastaFile;
 my $workspaceName;
-my $authToken;
+my $authToken = $ENV{KB_AUTH_TOKEN};
 my $workspaceURL = "https://kbase.us/services/ws"; # production endpoint
 #my $workspaceURL = "http://140.221.84.209:7058";    # dev endpoint
 my $idserverURL = "https://kbase.us/services/idserver";
@@ -32,7 +32,6 @@ my $opt = GetOptions (
             "fastafile=s" => \$fastaFile,
             "ws-name=s"   => \$workspaceName,
             "ws-url=s"    => \$workspaceURL,
-            "authtoken=s" => \$authToken,
             "metadatafile=s"    => \$metadatafile,
             "help|h"      => \$help
             );
