@@ -47,7 +47,7 @@
 	    "cmd": {
 		  "args": "##FILETYPE## @##SEQUENCEFileName## @md_file ##SEQUENCE## ##SHOCK##/##SEQUENCE##",
 		  "description": "validate sequence and generate the workspace document for upload to the workspace",
-		  "name": "kb_create_rnaseq_fastq.pl",
+		  "name": "kb_create_variation_fastq.pl",
 	  "environ": {"KB_AUTH_TOKEN":""}
 	      },
 	      "dependsOn":[],
