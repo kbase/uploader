@@ -882,7 +882,7 @@ The time between submission and a resulting data object in the workspace may tak
 
 	// get the staging area files from SHOCK and call the showShockResult function
 	// once the file information is available
-	SHOCK.get_all_nodes(Retina.WidgetInstances.kbupload[1].showShockResult,"?query&type=inbox&user="+Retina.WidgetInstances.kbupload[1].user);
+	SHOCK.get_all_nodes(Retina.WidgetInstances.kbupload[1].showShockResult,"?query&limit=10000&type=inbox&user="+Retina.WidgetInstances.kbupload[1].user);
 	
 	// get the pipeline status information from AWE and call the showAWEResult function
 	jQuery.get(RetinaConfig.awe.url+"/job?query&info.user="+widget.user+"&info.project=data-importer", function (data) {
