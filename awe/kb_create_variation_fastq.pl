@@ -80,7 +80,7 @@ foreach my $hash (@{$meta}) {
                 
 		foreach my $key (keys %{$hash}) {
 			#print $key ."\t". $hash->{$key} . "\n";
-			if( $key eq 'tissue') {
+			if( $key eq 'read_count') {
                        	#		 my $part = $hash->{'Tissue'};
 			#		 my @tissue = ();
                        	#		 foreach my $val (@{$part}){
@@ -88,31 +88,19 @@ foreach my $hash (@{$meta}) {
                         #        	 push(@tissue,$val);
 			#		}
 			#	print "\ntissue is " . @tissue ."\n";
-			  	$ws_doc->{'metadata'}{'tissue'} = $hash->{$key};
+			  	$ws_doc->{'metadata'}{'read_count'} = $hash->{$key};
 			}elsif ( $key eq 'sample_name'){
-                                $ws_doc->{'name'} = $hash->{$key};
+                                #$ws_doc->{'name'} = $hash->{$key};
 			}elsif ( $key eq 'sample_id'){
-				$ws_doc->{'metadata'}{'sample_id'} = $hash->{$key};
+				$ws_doc->{'sample_id'} = $hash->{$key};
 			}elsif ( $key eq 'platform'){
                                 $ws_doc->{'metadata'}{'platform'} = $hash->{$key};
 			}elsif ( $key eq 'paired'){
                                 $ws_doc->{'metadata'}{'paired'} = $hash->{$key};
 			}elsif ($key eq 'title') {
 				$ws_doc->{'metadata'}{'title'} = $hash->{$key};
-			}elsif($key eq 'condition'){   
-				#my @part = split(',',$hash->{'condition'});
-				my $part = $hash->{'condition'};
-				my @condn = ();
-                               	#print (ref $hash->{'condition'});
-				if(ref $part eq 'ARRAY'){
-					foreach my $val (@{$part}){
-        	                        	#print "Condition -> " . $val . "\n";
-                	               	 	push(@condn,$val);
- 					} 
-				}else{
-					push(@condn,$part);   
-				}
-			 	@{$ws_doc->{'metadata'}{'condition'}} = @condn;
+			}elsif($key eq 'base_count'){   
+			 	$ws_doc->{'metadata'}{'base_count'} = $hash->{$key};
 			}elsif($key eq 'domain'){
 				$ws_doc->{'metadata'}{'domain'} = $hash->{$key};
  			}elsif( $key eq 'source_id'){
@@ -121,6 +109,10 @@ foreach my $hash (@{$meta}) {
 				$ws_doc->{'metadata'}{'ext_source_date'} = $hash->{$key};
 			}elsif( $key eq 'genome'){
                                 $ws_doc->{'metadata'}{'ref_genome'} = $hash->{$key};
+			}elsif( $key eq 'library'){
+                                $ws_doc->{'metadata'}{'library'} = $hash->{$key};
+			}elsif( $key eq 'assay'){
+                                $ws_doc->{'metadata'}{'assay'} = $hash->{$key};
 			}elsif( $key eq 'source'){
                                 $ws_doc->{'metadata'}{'source'} = $hash->{$key};	
  			}else {
@@ -138,7 +130,7 @@ close OUT;
 exit(0);
 
 sub print_usage {
-    &return_error("USAGE: kb_create_rnaseq_fastq.pl filetype filename metadatafilename shockid shockurl");
+    &return_error("USAGE: kb_create_variation_fastq.pl filetype filename metadatafilename shockid shockurl");
 }
 
 sub return_error {

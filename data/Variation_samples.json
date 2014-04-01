@@ -1,8 +1,8 @@
-{ "name": "RNASeqfastq",
+{ "name": "Variation fastq",
   "interface": {
       "intro": {
-	  "title": "RNASeq sample reads submission",
-	  "text": "A RNASeq sample submission requires a single or a set of sequence files in fastq format and a filled out metadata Excel spreadsheet.",
+	  "title": "Variation sample reads submission",
+	  "text": "A Variation sample submission requires a single or a set of sequence files in fastq format and a filled out metadata Excel spreadsheet.",
 	  "excel": true,
 	  "json": false
       },
@@ -10,7 +10,7 @@
 	  { 
 	      "type": "dropdown",
 	      "filetype": [ "xlsx" ],
-	      "label": "select RNASeq metadata file",
+	      "label": "select Variation metadata file",
 	      "help": null,
 	      "default": null,
 	      "data": null,
@@ -20,12 +20,12 @@
 	  {
               "type": "dropdown",
               "filetype": null,
-              "label": "select RNASeq sequence file type",
+              "label": "select Variation sequence file type",
               "help": null,
               "default": "fastq",
               "data": [ { "value": "fastq", "label": "fastq" },
-                        { "value": "fq", "label": "fq" } , 
-			{ "value": "gz", "label": "gz" } ],
+                        { "value": "fq", "label": "fq" },
+			{ "value": "gz", "label": "gz"}  ],
               "isMetadata": false,
               "aweVariable": "FILETYPE" 
 	  },
@@ -72,7 +72,7 @@
               },
 	      {
 		"cmd":{ 
-			"args": "-type=KBaseRNASeqData.RNASeqSample -id=##SEQUENCEFileName## -data=@document.json -workspace=##WORKSPACE##",
+			"args": "-type=KBaseVariationData.VariationSample -id=##SEQUENCEFileName## -data=@document.json -workspace=##WORKSPACE##",
                 	"description": "create workspace object",
                 	"name": "kb_create_ws_object.pl",
 	  "environ": {"KB_AUTH_TOKEN":""}	    
@@ -91,9 +91,9 @@
 	 ]
 	},
   	"metadata": {
-      	"name": "RNASeqSampleMetaData",
-      	"label": "KBase RNA-Seq Metadata Template",
-      	"description": "Template to specify meta data for loading a sample RNA-Seq reads FASTQ file to a KBaseRNASeqData.RNASeqSampleMetaData. typed object in a workspace",
+      	"name": "VariationSampleMetaData",
+      	"label": "KBase Variation Metadata Template",
+      	"description": "Template to specify meta data for loading a sample reads FASTQ file to a KBaseVariationData.VariationSampleMetaData. typed object in a workspace",
      	 "cvs": {
           "domain": {
 	      "Plants":true,
@@ -108,7 +108,7 @@
 	      "type": "list",
               "name":"BasicSampleInfo",
               "label":"BasicSampleInfo",
-              "description":"RNASeq Sample Information",
+              "description":"Variation Sample Information",
               "mandatory": true,
               "toplevel":true,
 	      "subgroups":{},
@@ -116,7 +116,7 @@
 		  "sample_name": {
                       "name":"sample_name",
                       "label":"Sample_Name",
-                      "description":"Sample name of the RNASeq Sample",
+                      "description":"Sample name of the Variation Sample",
                       "type":"text",
                       "default":"Unknown",
                       "mandatory":"true",
@@ -146,7 +146,7 @@
 		  "sample_id": {
                       "name":"sample_id",
                       "label":"Sample ID",
-                      "description":"Sample Id of the RNASeq Sample",
+                      "description":"Sample Id of the Variation Sample",
                       "type":"text",
                       "default":"Unknown",
                       "mandatory":"true",
@@ -185,7 +185,7 @@
                   },
 		  "ext_source_date": {
                       "name":"ext_source_date",
-                      "label":"Source_Date",
+                      "label":"Submission Date",
                       "description":"Source Submission Date",
                       "type":"text",
                       "default":"Unknown",
@@ -213,20 +213,40 @@
                       "validation": { "type":"none" },
                       "index": 0
                   },
-                  "tissue": {
-                      "name":"tissue",
-                      "label":"Tissue",
-                      "description":"the tissue used in the sample Library Preparation",
+                  "library": {
+                      "name":"library",
+                      "label":"Library",
+                      "description":"Source Library Name ",
                       "type":"text",
                       "default":"Unknown",
                       "mandatory":"true",
                       "validation": { "type":"none" },
 		      "index": 2
                   },
-		 "condition": {
-                      "name":"condition",
-                      "label":"Condition",
-                      "description":"Sample prepartion conditions/Treatment",
+		  "assay": {
+                      "name":"assay",
+                      "label":"Assay",
+                      "description":"Assay",
+                      "type":"text",
+                      "default":"Unknown",
+                      "mandatory":"true",
+                      "validation": { "type":"none" },
+                      "index": 2
+                  },
+		 "read_count": {
+                      "name":"read_count",
+                      "label":"Read count",
+                      "description":"Number of reads in the sample",
+                      "type":"list",
+                      "default":"Unknown",
+                      "mandatory":"true",
+                      "validation": { "type":"none" },
+                      "index": 2
+                  },
+		"base_count": {
+                      "name":"base_count",
+                      "label":"Base count",
+                      "description":"Base count of each read",
                       "type":"list",
                       "default":"Unknown",
                       "mandatory":"true",
