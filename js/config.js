@@ -7,5 +7,5 @@ var RetinaConfig = {
 	   },
     "workspace": "https://kbase.us/services/ws/",
     "authURL": "https://kbase.us/services/authorization/Sessions/Login/",
-    "templates": [ "genome", "metagenome", "GWAS_population_trait", "RNASeq_samples" ]
+    "templates": [ "genome", "metagenome", "GWAS_population_trait", "RNASeq_samples", "Variation_samples" ]
 };
