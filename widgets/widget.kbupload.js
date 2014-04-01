@@ -488,6 +488,13 @@ The time between submission and a resulting data object in the workspace may tak
     widget.updateFileFields = function () {
 	widget = Retina.WidgetInstances.kbupload[1];
 
+	// reset the validation
+	var status = document.getElementById('metadataValidationDiv');
+	Retina.WidgetInstances.kbupload[1].metaDataValidated = false;
+	status.className = "alert";
+	status.innerHTML = "<b>validation pending</b>";
+	widget.metaDataValidated = false;
+
 	// get the files information from the DataStore
 	var inbox = stm.DataStore.inbox;
 
@@ -875,7 +882,7 @@ The time between submission and a resulting data object in the workspace may tak
 
 	// get the staging area files from SHOCK and call the showShockResult function
 	// once the file information is available
-	SHOCK.get_all_nodes(Retina.WidgetInstances.kbupload[1].showShockResult,"?query&type=inbox&user="+Retina.WidgetInstances.kbupload[1].user);
+	SHOCK.get_all_nodes(Retina.WidgetInstances.kbupload[1].showShockResult,"?query&limit=10000&type=inbox&user="+Retina.WidgetInstances.kbupload[1].user);
 	
 	// get the pipeline status information from AWE and call the showAWEResult function
 	jQuery.get(RetinaConfig.awe.url+"/job?query&info.user="+widget.user+"&info.project=data-importer", function (data) {
@@ -1113,6 +1120,9 @@ The time between submission and a resulting data object in the workspace may tak
 	// get the shock node id for the selected metadata file
 	var node = sel.options[sel.selectedIndex].value;
 
+	// get the metadata validation status field
+	var status = document.getElementById('metadataValidationDiv');
+
 	// check if this has already been transformed to JSON
 	if (Retina.WidgetInstances.kbupload[1].validatedTemplates.hasOwnProperty(node)) {
 	    Retina.WidgetInstances.kbupload[1].metaDataValidated = true;
@@ -1121,9 +1131,6 @@ The time between submission and a resulting data object in the workspace may tak
 	    return;
 	}
 	
-	// get the metadata validation status field
-	var status = document.getElementById('metadataValidationDiv');
-
 	// check if a parsed template is available for this node
 	if (Retina.WidgetInstances.kbupload[1].jsonTemplates[node]) {
 
