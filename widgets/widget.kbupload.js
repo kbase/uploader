@@ -1324,7 +1324,11 @@ The time between submission and a resulting data object in the workspace may tak
 			    if (typeof ws.data[0][h] === "undefined") {
 				return;
 			    }
-			    ds[ws.data[0][h].value] = (typeof ws.data[2] === "undefined" || typeof ws.data[2][h] === "undefined") ? null : ws.data[2][h].value;
+			    if (groups[ws.data[0][0].value].fields[ws.data[0][h].value].type == "text") {
+				ds[ws.data[0][h].value] = (typeof ws.data[2] === "undefined" || typeof ws.data[2][h] === "undefined") ? null : ws.data[2][h].value + "";
+			    } else {
+				ds[ws.data[0][h].value] = (typeof ws.data[2] === "undefined" || typeof ws.data[2][h] === "undefined") ? null : ws.data[2][h].value;
+			    }
 			}
 			parsedData[ws.data[0][0].value][ws.name].push(ds);	
 		    }
@@ -1339,7 +1343,7 @@ The time between submission and a resulting data object in the workspace may tak
 			    if (typeof ws.data[0][h] === "undefined") {
 				return;
 			    }
-			    dataRow[ws.data[0][h].value] = (typeof ws.data[j] === "undefined" || typeof ws.data[j][h] === "undefined") ? null : ws.data[j][h].value;
+			    dataRow[ws.data[0][h].value] = (typeof ws.data[j] === "undefined" || typeof ws.data[j][h] === "undefined") ? null : ws.data[j][h].value+"";
 			}
 			parsedData[ws.name].push(dataRow);
 		    }
