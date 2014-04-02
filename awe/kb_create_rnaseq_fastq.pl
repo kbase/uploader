@@ -124,7 +124,7 @@ foreach my $hash (@{$meta}) {
 			}elsif( $key eq 'source'){
                                 $ws_doc->{'metadata'}{'source'} = $hash->{$key};	
  			}else {
-				print "\n" . $key . " I am in else block \n";
+				#print "\n" . $key . " I am in else block \n";
 				      #&return_error("Invalid metadata file");	
 			}	
 		}

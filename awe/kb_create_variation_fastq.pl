@@ -92,7 +92,7 @@ foreach my $hash (@{$meta}) {
 			}elsif ( $key eq 'sample_name'){
                                 #$ws_doc->{'name'} = $hash->{$key};
 			}elsif ( $key eq 'sample_id'){
-				$ws_doc->{'sample_id'} = $hash->{$key};
+				$ws_doc->{'metadata'}{'sample_id'} = $hash->{$key};
 			}elsif ( $key eq 'platform'){
                                 $ws_doc->{'metadata'}{'platform'} = $hash->{$key};
 			}elsif ( $key eq 'paired'){
