@@ -81,14 +81,19 @@ foreach my $hash (@{$meta}) {
 		foreach my $key (keys %{$hash}) {
 			#print $key ."\t". $hash->{$key} . "\n";
 			if( $key eq 'tissue') {
-                       	#		 my $part = $hash->{'Tissue'};
-			#		 my @tissue = ();
-                       	#		 foreach my $val (@{$part}){
-                        #       		#print "Tissue -> " . $val . "\n";
-                        #        	 push(@tissue,$val);
-			#		}
+                       		 my $part = $hash->{'tissue'};
+				 my @tissue = ();
+				 if(ref $part eq 'ARRAY'){
+                       			 foreach my $val (@{$part}){
+                        	       		#print "Tissue -> " . $val . "\n";
+                        	        	 push(@tissue,$val);
+					 }
+				 }else {
+					      push(@tissue,$part);
+				 }
+			@{$ws_doc->{'metadata'}{'tissue'}} = @tissue;	
 			#	print "\ntissue is " . @tissue ."\n";
-			  	$ws_doc->{'metadata'}{'tissue'} = $hash->{$key};
+			  	#$ws_doc->{'metadata'}{'tissue'} = $hash->{$key};
 			}elsif ( $key eq 'sample_name'){
                                 $ws_doc->{'name'} = $hash->{$key};
 			}elsif ( $key eq 'sample_id'){
@@ -113,12 +118,40 @@ foreach my $hash (@{$meta}) {
 					push(@condn,$part);   
 				}
 			 	@{$ws_doc->{'metadata'}{'condition'}} = @condn;
+			}elsif($key eq 'po_id'){
+                                #my @part = split(',',$hash->{'condition'});
+                                my $part = $hash->{'po_id'};
+                                my @po_id = ();
+                                #print (ref $hash->{'condition'});
+                                if(ref $part eq 'ARRAY'){
+                                        foreach my $val (@{$part}){
+                                                #print "Condition -> " . $val . "\n";
+                                                push(@po_id,$val);
+                                        }
+                                }else{
+                                        push(@po_id,$part);
+                                }
+                                @{$ws_doc->{'metadata'}{'po_id'}} = @po_id;
+			}elsif($key eq 'eo_id'){
+                                #my @part = split(',',$hash->{'condition'});
+                                my $part = $hash->{'eo_id'};
+                                my @eo_id = ();
+                                #print (ref $hash->{'condition'});
+                                if(ref $part eq 'ARRAY'){
+                                        foreach my $val (@{$part}){
+                                                #print "Condition -> " . $val . "\n";
+                                                push(@eo_id,$val);
+                                        }
+                                }else{
+                                        push(@eo_id,$part);
+                                }
+                                @{$ws_doc->{'metadata'}{'eo_id'}} = @eo_id;
 			}elsif($key eq 'domain'){
 				$ws_doc->{'metadata'}{'domain'} = $hash->{$key};
  			}elsif( $key eq 'source_id'){
 				$ws_doc->{'metadata'}{'source_id'} = $hash->{$key};
 			}elsif( $key eq 'ext_source_date'){
-				$ws_doc->{'metadata'}{'ext_source_date'} = $hash->{$key};
+				$ws_doc->{'metadata'}{'ext_source_date'} = "$hash->{$key}";
 			}elsif( $key eq 'genome'){
                                 $ws_doc->{'metadata'}{'ref_genome'} = $hash->{$key};
 			}elsif( $key eq 'source'){

@@ -88,7 +88,7 @@ foreach my $hash (@{$meta}) {
                         #        	 push(@tissue,$val);
 			#		}
 			#	print "\ntissue is " . @tissue ."\n";
-			  	$ws_doc->{'metadata'}{'read_count'} = $hash->{$key};
+			  	$ws_doc->{'metadata'}{'read_count'} = "$hash->{$key}";
 			}elsif ( $key eq 'sample_name'){
                                 #$ws_doc->{'name'} = $hash->{$key};
 			}elsif ( $key eq 'sample_id'){
@@ -100,13 +100,13 @@ foreach my $hash (@{$meta}) {
 			}elsif ($key eq 'title') {
 				$ws_doc->{'metadata'}{'title'} = $hash->{$key};
 			}elsif($key eq 'base_count'){   
-			 	$ws_doc->{'metadata'}{'base_count'} = $hash->{$key};
+			 	$ws_doc->{'metadata'}{'base_count'} = "$hash->{$key}";
 			}elsif($key eq 'domain'){
 				$ws_doc->{'metadata'}{'domain'} = $hash->{$key};
  			}elsif( $key eq 'source_id'){
 				$ws_doc->{'metadata'}{'source_id'} = $hash->{$key};
 			}elsif( $key eq 'ext_source_date'){
-				$ws_doc->{'metadata'}{'ext_source_date'} = $hash->{$key};
+				$ws_doc->{'metadata'}{'ext_source_date'} = "$hash->{$key}";
 			}elsif( $key eq 'genome'){
                                 $ws_doc->{'metadata'}{'ref_genome'} = $hash->{$key};
 			}elsif( $key eq 'library'){

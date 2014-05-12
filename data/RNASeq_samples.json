@@ -96,7 +96,6 @@
       	"description": "Template to specify meta data for loading a sample RNA-Seq reads FASTQ file to a KBaseRNASeqData.RNASeqSampleMetaData. typed object in a workspace",
      	 "cvs": {
           "domain": {
-	      "Plants":true,
               "Bacteria":true,
               "Archaea":true,
               "Eukaryota":true,
@@ -139,7 +138,7 @@
                       "description":"Sequencing Platform",
                       "type":"text",
                       "default":"Unknown",
-                      "mandatory":"true",
+                      "mandatory":"false",
                       "validation": { "type":"none" },
                       "index": 0
                   },
@@ -169,7 +168,7 @@
                       "description":"Experiment ID for the study in the source database",
                       "type":"text",
                       "default":"",
-                      "mandatory":"false",
+                      "mandatory":"true",
                       "validation": { "type":"none" },
                       "index": 4
                   },
@@ -179,7 +178,7 @@
                       "description":"the original source location of the sample, e.g. NCBI",
                       "type":"text",
                       "default":"kbase",
-                      "mandatory":"true",
+                      "mandatory":"false",
                       "validation": { "type":"none" },
                       "index": 3
                   },
@@ -217,11 +216,21 @@
                       "name":"tissue",
                       "label":"Tissue",
                       "description":"the tissue used in the sample Library Preparation",
-                      "type":"text",
+                      "type":"list",
                       "default":"Unknown",
-                      "mandatory":"true",
+                      "mandatory":"false",
                       "validation": { "type":"none" },
 		      "index": 2
+                  },
+		 "po_id": {
+                      "name":"po_id",
+                      "label":"Plant Structure Ontology id",
+                      "description":"Ontology id in the following format Eg : PO:0000015 Please use http://archive.gramene.org/plant_ontology/ontology_browse.html#to to search for trait ontology terms for the trait data being uploaded",
+                      "type":"list",
+                      "default":"Unknown",
+                      "mandatory":"false",
+                      "validation": { "type":"none" },
+                      "index": 2
                   },
 		 "condition": {
                       "name":"condition",
@@ -229,7 +238,17 @@
                       "description":"Sample prepartion conditions/Treatment",
                       "type":"list",
                       "default":"Unknown",
-                      "mandatory":"true",
+                      "mandatory":"false",
+                      "validation": { "type":"none" },
+                      "index": 2
+                  },
+		  "eo_id": {
+                      "name":"eo_id",
+                      "label":"Environment Ontology Id",
+                      "description":"Environment Ontology id in the following format Eg : EO:0007002 Please use http://archive.gramene.org/plant_ontology/ontology_browse.html#to to search for trait ontology terms for the trait data being uploaded",
+                      "type":"list",
+                      "default":"Unknown",
+                      "mandatory":"false",
                       "validation": { "type":"none" },
                       "index": 2
                   }
