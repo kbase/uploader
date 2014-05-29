@@ -421,17 +421,17 @@ The time between submission and a resulting data object in the workspace may tak
 		if (item.state != "deleted") {
 		    var currtask = item.tasks[item.tasks.length - item.remaintasks];
 		    var numtasks = item.tasks.length;
-		    subs.push([ item.info.name, Retina.WidgetInstances.kbupload[1].dots(item.tasks), item.info.submittime, "-"]);
+		    subs.push([ item.info.name, Retina.WidgetInstances.kbupload[1].dots(item.tasks), item.info.submittime, "-", "<button type='button' class='btn btn-mini btn-danger' onclick='if(confirm(\"Really delete this job? This cannot be undone!\")){Retina.WidgetInstances.kbupload[1].deleteJob(this, \""+item.id+"\");}'>delete</button>"]);
 		}
 	    } else {
 		var laststate = item.tasks[item.tasks.length - 1].state;
 		if (item.state != "deleted" && laststate != "deleted") {
-		    subs.push([ item.info.name, Retina.WidgetInstances.kbupload[1].dots(item.tasks), item.info.submittime, (laststate == "completed") ? item.info.completedtime : "-"]);
+		    subs.push([ item.info.name, Retina.WidgetInstances.kbupload[1].dots(item.tasks), item.info.submittime, (laststate == "completed") ? item.info.completedtime : "-", "<button type='button' class='btn btn-mini btn-danger' onclick='if(confirm(\"Really delete this job? This cannot be undone!\")){Retina.WidgetInstances.kbupload[1].deleteJob(this, \""+item.id+"\");}'>delete</button>"]);
 		}
 	    }
 	}
 	if (subs.length) {
-	    var columns = ["submission type", "status", "submission time", "completion time"];
+	    var columns = ["submission type", "status", "submission time", "completion time", "delete"];
 	    html += "<table class='table table-hover'>";
 	    html += "<thead><tr><th>"+columns.join("</th><th>")+"</th></tr></thead><tbody>";
 	    for (var i=0;i<subs.length;i++) {
@@ -443,6 +443,15 @@ The time between submission and a resulting data object in the workspace may tak
 	}
 
 	target.innerHTML = html;
+    };
+
+    // delete an AWE job
+    widget.deleteJob = function(button, id) {
+	widget = Retina.WidgetInstances.kbupload[1];
+
+	button.parentNode.parentNode.parentNode.removeChild(button.parentNode.parentNode);
+	
+	jQuery.ajax(RetinaConfig.awe.url+"/job/"+id, { method: "DELETE" });
     };
 
     // show additional information and action buttons for a selected file
