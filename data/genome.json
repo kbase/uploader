@@ -60,6 +60,7 @@
       "description": "Template to specify meta data for loading a genome from a FASTA sequence file to a KBaseGenomes.Genome typed object in a workspace",
       "cvs": {
           "domain": {
+	      "Plant":true,
               "Bacteria":true,
               "Archaea":true,
               "Eukaryota":true,
