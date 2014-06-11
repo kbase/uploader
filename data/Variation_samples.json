@@ -72,7 +72,7 @@
               },
 	      {
 		"cmd":{ 
-			"args": "-type=KBaseVariationData.VariationSample -id=##SEQUENCEFileName## -data=@document.json -workspace=##WORKSPACE##",
+			"args": "-type=KBaseGwasData.VariationSample -id=##SEQUENCEFileName## -data=@document.json -workspace=##WORKSPACE##",
                 	"description": "create workspace object",
                 	"name": "kb_create_ws_object.pl",
 	  "environ": {"KB_AUTH_TOKEN":""}	    
@@ -93,7 +93,7 @@
   	"metadata": {
       	"name": "VariationSampleMetaData",
       	"label": "KBase Variation Metadata Template",
-      	"description": "Template to specify meta data for loading a sample reads FASTQ file to a KBaseVariationData.VariationSampleMetaData. typed object in a workspace",
+      	"description": "Template to specify meta data for loading a sample reads FASTQ file to a KBaseGwasData.VariationSampleMetaData. typed object in a workspace",
      	 "cvs": {
           "domain": {
               "Bacteria":true,
