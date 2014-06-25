@@ -310,6 +310,16 @@ if ($vars{action} eq "template") {
   &output($output);
 } elsif ($vars{action} eq "status") {
   $output->{status} = "ok";
+  my $ua = LWP::UserAgent->new();
+  my $get = $ua->get($vars{aweurl}."/job/".$vars{submission_id});
+  if ($get->is_success) {
+    my $json = new JSON();
+    my $res = $json->decode( $get->content );
+    $output->{data} = $res;
+  } else {
+    $output->{status} = "error";
+    $output->{error} = "the server could not be reached";
+  }
   &output($output);
 }
 
