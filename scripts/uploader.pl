@@ -231,19 +231,19 @@ my $output = { "action" => $vars{action},
 if ($vars{action} eq "template") {
   $output->{status} = "ok";
   &output($output);
-} else if ($vars{action} eq "upload") {
+} elsif ($vars{action} eq "upload") {
   $output->{status} = "ok";
   &output($output);
-} else if ($vars{action} eq "validate") {
+} elsif ($vars{action} eq "validate") {
   $output->{status} = "ok";
   &output($output);
-} else if ($vars{action} eq "delete") {
+} elsif ($vars{action} eq "delete") {
   $output->{status} = "ok";
   &output($output);
-} else if ($vars{action} eq "submit") {
+} elsif ($vars{action} eq "submit") {
   $output->{status} = "ok";
   &output($output);
-} else if ($vars{action} eq "status") {
+} elsif ($vars{action} eq "status") {
   $output->{status} = "ok";
   &output($output);
 }
