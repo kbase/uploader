@@ -238,6 +238,35 @@ my $output = { "action" => $vars{action},
 	       "error"  => undef };
 if ($vars{action} eq "template") {
   $output->{status} = "ok";
+
+  if (-f "../data/".$vars{data_type}.".json") {
+    if (open(FH, "<../data/".$vars{data_type}.".json")) {
+      my $data = "";
+      while (<FH>) {
+	$data .= $_;
+      }
+      close FH;
+      my $json = JSON->new();
+      eval {
+	$data = $json->decode($data);
+      };
+      if ($@) {
+	$output->{status} = "error";
+	$output->{error} = "the metadata file could not be parsed: $@";
+      } else {
+	if (exists $data->{metadata}) {
+	  $output->{data} = $data->{metadata};
+	}
+      }      
+    } else {
+      $output->{status} = "error";
+      $output->{error} = "the metadata file could not be opened: $@";
+    }
+  } else {
+    $output->{status} = "error";
+    $output->{error} = "the requested data type does not exist";
+  }
+
   &output($output);
 } elsif ($vars{action} eq "upload") {
   $output->{status} = "ok";
