@@ -184,7 +184,7 @@ if ($deps->{$vars{action}}) {
     }
   }
   if (scalar(@$dep_missing)) {
-    &error("you are missing the following parameters required for the ".$vars{action}." action:\n".join(@$dep_missing, ",\n"));
+    &error("you are missing the following parameters required for the ".$vars{action}." action:\n".join(",\n", @$dep_missing));
   }
 } else {
   &error("invalid action parameter. Valid values are:\ntemplate, submit, validate, delete, upload and status");
