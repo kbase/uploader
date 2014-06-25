@@ -162,8 +162,33 @@ if ($help) {
 }
 
 # check if we have an action
-if($vars{action} eq "") {
+if(! defined $vars{action}) {
   &error("you are missing the action parameter from your command.\nFor more detailed documentation run '$0 -h'");
+}
+
+# check input parameter dependencies
+my $deps = { "template" => [ "data_type" ],
+	     "submit" => [ "data_type",
+			   "data_file",
+			   "workspace" ],
+	     "validate" => [ "data_type",
+			     "metadata_file" ],
+	     "delete" => [ "data_file" ],
+	     "upload" => [ "data_file" ],
+	     "status" => [ "submission_id" ] };
+
+my $dep_missing = [];
+if ($deps->{$vars{action}}) {
+  foreach my $p (@{$deps->{$vars{action}}}) {
+    if (! defined $vars{$p}) {
+      push(@$dep_missing, $p);
+    }
+  }
+  if (scalar(@$dep_missing)) {
+    &error("you are missing the following parameters required for the ".$vars{action}." action:\n".join(@$dep_missing, ",\n"));
+  }
+} else {
+  &error("invalid action parameter. Valid values are:\ntemplate, submit, validate, delete, upload and status");
 }
 
 # read the config
@@ -193,31 +218,6 @@ if(exists $ENV{"KB_AUTH_TOKEN"}) {
     }
 } else {
   &error("user not authenticated");
-}
-
-# check input parameter dependencies
-my $deps = { "template" => [ "data_type" ],
-	     "submit" => [ "data_type",
-			   "data_file",
-			   "workspace" ],
-	     "validate" => [ "data_type",
-			     "metadata_file" ],
-	     "delete" => [ "data_file" ],
-	     "upload" => [ "data_file" ],
-	     "status" => [ "submission_id" ] };
-
-my $dep_missing = [];
-if ($deps->{$vars{action}}) {
-  foreach my $p (@{$deps->{$vars{action}}}) {
-    if (! exists $vars{$p}) {
-      push(@$dep_missing, $p);
-    }
-  }
-  if (scalar(@$dep_missing)) {
-    &error("you are missing the following parameters required for the ".$vars{action}." action:\n".join(@$dep_missing, ",\n"));
-  }
-} else {
-  &error("invalid action parameter. Valid values are:\ntemplate, submit, validate, delete, upload and status");
 }
 
 ###
