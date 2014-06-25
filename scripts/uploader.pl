@@ -176,7 +176,6 @@ my $deps = { "template" => [ "data_type" ],
 	     "delete" => [ "data_file" ],
 	     "upload" => [ "data_file" ],
 	     "status" => [ "submission_id" ] };
-
 my $dep_missing = [];
 if ($deps->{$vars{action}}) {
   foreach my $p (@{$deps->{$vars{action}}}) {
@@ -199,27 +198,36 @@ foreach my $key (keys(%$p_cfg)) {
 }
 
 # check authentication
+my $req_auth = { "template" => 0,
+		 "submit" => 1,
+		 "validate" => 0,
+		 "delete" => 1,
+		 "upload" => 1,
+		 "status" => 1 };
 my $token = "";
-if(exists $ENV{"KB_AUTH_TOKEN"}) {
+
+# is authentication required for this action?
+if ($req_auth->{$vars{action}}) {
+  if(exists $ENV{"KB_AUTH_TOKEN"}) {
     $token = $ENV{"KB_AUTH_TOKEN"};
-} elsif($vars{user} ne "" && $password ne "") {
+  } elsif($vars{user} ne "" && $password ne "") {
     my $encoded = encode_base64($vars{user}.':'.$password);
     my $json = new JSON();
     my $pre = `curl -s -H "Authorization: Basic $encoded" -X POST "$OAUTH_URL"`;
     eval {
-        my $res = $json->decode($pre);
-        unless(exists $res->{access_token}) {
-            &error("could not authenticate user");
-        }
-        $token = $res->{access_token};
+      my $res = $json->decode($pre);
+      unless(exists $res->{access_token}) {
+	&error("could not authenticate user");
+      }
+      $token = $res->{access_token};
     };
     if ($@) {
-        &error("could not reach auth server: $@");
+      &error("could not reach auth server: $@");
     }
-} else {
-  &error("user not authenticated");
+  } else {
+    &error("action ".$vars{action}." requires authentication, but a user could not be authenticated");
+  }
 }
-
 ###
 #
 # inputs are done, check which action to perform
