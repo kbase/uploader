@@ -168,6 +168,7 @@ if(! defined $vars{action}) {
 
 # check input parameter dependencies
 my $deps = { "template" => [ "data_type" ],
+	     "templateList" => [],
 	     "submit" => [ "data_type",
 			   "data_file",
 			   "workspace" ],
@@ -175,6 +176,7 @@ my $deps = { "template" => [ "data_type" ],
 			     "metadata_file" ],
 	     "delete" => [ "data_file" ],
 	     "upload" => [ "data_file" ],
+	     "fileList" => [],
 	     "status" => [ "submission_id" ] };
 my $dep_missing = [];
 if ($deps->{$vars{action}}) {
@@ -199,10 +201,12 @@ foreach my $key (keys(%$p_cfg)) {
 
 # check authentication
 my $req_auth = { "template" => 0,
+		 "templateList" => 0,
 		 "submit" => 1,
 		 "validate" => 0,
 		 "delete" => 1,
 		 "upload" => 1,
+		 "fileList" => 1,
 		 "status" => 1 };
 my $token = "";
 
@@ -268,6 +272,26 @@ if ($vars{action} eq "template") {
   }
 
   &output($output);
+} elsif ($vars{action} eq "templateList") {
+  $output->{status} = "ok";
+  if (-d "../data/") {
+    if (opendir(my $dh, "../data/")) {
+      my @templates = grep { /\.json$/ && -f "../data/$_" } readdir($dh);
+      closedir $dh;
+      my $data = [];
+      foreach my $t (@templates) {
+	$t =~ s/\.json$//;
+	push(@$data, $t);
+      }
+      $output->{data} = $data;
+    } else {
+      $output->{status} = "error";
+      $output->{error} = "the metadata directory could not be read: $@";
+    }
+  } else {
+    $output->{status} = "error";
+    $output->{error} = "the metadata directory does not exist";
+  }
 } elsif ($vars{action} eq "upload") {
   $output->{status} = "ok";
   &output($output);
@@ -275,6 +299,9 @@ if ($vars{action} eq "template") {
   $output->{status} = "ok";
   &output($output);
 } elsif ($vars{action} eq "delete") {
+  $output->{status} = "ok";
+  &output($output);
+} elsif ($vars{action} eq "fileList") {
   $output->{status} = "ok";
   &output($output);
 } elsif ($vars{action} eq "submit") {
