@@ -292,6 +292,7 @@ if ($vars{action} eq "template") {
     $output->{status} = "error";
     $output->{error} = "the metadata directory does not exist";
   }
+  &output($output);
 } elsif ($vars{action} eq "upload") {
   $output->{status} = "ok";
   &output($output);
