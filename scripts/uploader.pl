@@ -464,7 +464,7 @@ sub fillAWETemplateAndSubmit {
 				  "project" => $vars{project},
 				  "user" => $vars{user},
 				  "clientgroups" => $vars{clientgroups},
-				  "noretry" => true };
+				  "noretry" => 1 };
 
   # retrieve variables to replace
   # default variables
@@ -612,7 +612,7 @@ sub validate {
     $output->{data} = "no metadata required";
   }
 
-  if ($direct_ouput) {
+  if ($direct_output) {
     &output();
   } else {
     return $output;
@@ -673,7 +673,7 @@ sub check_field {
   }
   
   if (exists $group->{fields}->{$fieldname}) {
-    my $field = $group->{$fields}->{$fieldname};
+    my $field = $group->{fields}->{$fieldname};
     if ($field->{validation} && $field->{validation}->{type} ne 'none') {
       if ($field->{validation}->{type} eq 'cv') {
 	if (! $output->{template}->{cvs}->{$field->{validation}->{value}}->{$value}) {
