@@ -238,7 +238,7 @@ my $req_auth = { "template" => 0,
 my $output = { "status" => "ok", 
 	       "action" => $vars{action},
 	       "error"  => undef };
-
+my $json = new JSON;
 my $status = [];
 
 # perform authentication if needed
@@ -248,7 +248,6 @@ if ($req_auth->{$vars{action}}) {
     $token = $ENV{"KB_AUTH_TOKEN"};
   } elsif($vars{user} ne "" && $password ne "") {
     my $encoded = encode_base64($vars{user}.':'.$password);
-    my $json = new JSON();
     my $pre = `curl -s -H "Authorization: Basic $encoded" -X POST "$OAUTH_URL"`;
     eval {
       my $res = $json->decode($pre);
@@ -280,7 +279,6 @@ if ($vars{action} eq "template") {
 	$data .= $_;
       }
       close FH;
-      my $json = JSON->new();
       eval {
 	$data = $json->decode($data);
       };
@@ -323,7 +321,6 @@ if ($vars{action} eq "template") {
   }
   &output();
 } elsif ($vars{action} eq "upload") {
-  my $json = JSON->new();
   my $attr_str = $json->encode({ "type" => "inbox", "user" => $vars{user} });
   if (-f $vars{data_file} ) {
     my $content  = [ attributes => [ undef, "attributes.json", Content => $attr_str ], upload => [ $vars{data_file} ] ];
@@ -345,7 +342,7 @@ if ($vars{action} eq "template") {
   &fillAWETemplateAndSubmit($validation, $shocknode);
 } elsif ($vars{action} eq "status") {
   &request($vars{aweurl}."/job/".$vars{id}, 1);
-} elsif ($vars{action] eq "statusList") {
+} elsif ($vars{action} eq "statusList") {
   &request($vars{aweurl}."/job?query&info.user=".$vars{user}."&info.project=data-importer", 1);
 }
 
@@ -365,7 +362,6 @@ sub error {
 
 # print out the output in JSON format and exit with status 0
 sub output {
-  my $json = new JSON;
   
   print STDOUT $json->encode($output);
   
@@ -376,7 +372,6 @@ sub output {
 sub request {
   my ($url, $auth, $method, $content, $doReturn, $plain) = @_;
 
-  my $json = JSON->new();
   my $ua = LWP::UserAgent->new();
 
   my $get;
@@ -393,7 +388,6 @@ sub request {
   }
   if ($get->is_success) {
     if ($plain) {
-      my $json = new JSON();
       my $res = $json->decode( $get->content );
       if ($res->{error}) {
 	$output->{status} = "error";
@@ -432,8 +426,6 @@ sub fillAWETemplateAndSubmit {
 
   $output = { "action" => "submit",
 	      "status" => "ok" };
-
-  my $json = JSON->new();
 
   # load the template
   if (-f $vars{templatedir}."/".$vars{data_type}.".json") {
@@ -507,7 +499,7 @@ sub fillAWETemplateAndSubmit {
 # validate data against the current template
 # will return ok if no metadata is required
 sub validate {
-  my ($output, $direct_output) = @_;
+  my ($direct_output) = @_;
   
   # load the template
   if (-f $vars{templatedir}."/".$vars{data_type}.".json") {
@@ -517,14 +509,13 @@ sub validate {
 	$data .= $_;
       }
       close FH;
-      my $json = JSON->new();
       eval {
 	$data = $json->decode($data);
       };
       if ($@) {
 	$output->{status} = "error";
 	$output->{error} = "the metadata file could not be parsed: $@";
-	&output($output);
+	&output();
       } else {
 	if (exists $data->{metadata}) {
 	  $output->{template} = $data->{metadata};
@@ -533,12 +524,12 @@ sub validate {
     } else {
       $output->{status} = "error";
       $output->{error} = "the metadata file could not be opened: $@";
-      &output($output);
+      &output();
     }
   } else {
     $output->{status} = "error";
     $output->{error} = "the requested data type does not exist";
-    &output($output);
+    &output();
   }
 
   # check if metadata is required
@@ -547,14 +538,13 @@ sub validate {
     # load the metadata
     if (my ($id) = $vars{metadata_file} =~ /^SHOCK\:(.+)$/) {
       my $data = &request($vars{shockurl}."/node/".$id."?download", 1, undef, 1);
-      my $json = JSON->new();
       eval {
 	$data = $json->decode($data);
       };
       if ($@) {
 	$output->{status} = "error";
 	$output->{error} = "the metadata file could not be parsed: $@";
-	&output($output);
+	&output();
       } else {
 	$output->{metadata} = $data;
       }
@@ -566,26 +556,25 @@ sub validate {
 	    $data .= $_;
 	  }
 	  close FH;
-	  my $json = JSON->new();
 	  eval {
 	    $data = $json->decode($data);
 	  };
 	  if ($@) {
 	    $output->{status} = "error";
 	    $output->{error} = "the metadata file could not be parsed: $@";
-	    &output($output);
+	    &output();
 	  } else {
 	    $output->{metadata} = $data;
 	  }
 	} else {
 	  $output->{status} = "error";
 	  $output->{error} = "the metadata file not be read: $@";
-	  &output($output);      
+	  &output();      
 	}
       } else {
 	$output->{status} = "error";
 	$output->{error} = "the metadata file does not exist";
-	&output($output);      
+	&output();      
       }
     }
     
@@ -624,7 +613,7 @@ sub validate {
   }
 
   if ($direct_ouput) {
-    &output($output);
+    &output();
   } else {
     return $output;
   }
