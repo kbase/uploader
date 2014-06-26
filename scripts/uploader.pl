@@ -387,7 +387,7 @@ sub request {
     $get = $ua->get($url);
   }
   if ($get->is_success) {
-    if ($plain) {
+    if (! $plain) {
       my $res = $json->decode( $get->content );
       if ($res->{error}) {
 	$output->{status} = "error";
@@ -415,7 +415,7 @@ sub request {
   if ($doReturn) {
     return $output;
   } else {
-    &output($output);
+    &output();
   }
 }
 
