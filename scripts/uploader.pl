@@ -255,19 +255,19 @@ if ($req_auth->{$vars{action}}) {
       unless(exists $res->{access_token}) {
 	$output->{error} = "could not authenticate user";
 	$output->{status} = "error";
-	&output($output);
+	&output();
       }
       $token = $res->{access_token};
     };
     if ($@) {
       $output->{error} = "could not reach auth server: $@";
       $output->{status} = "error";
-      &output($output);
+      &output();
     }
   } else {
     $output->{error} = "action ".$vars{action}." requires authentication, but a user could not be authenticated";
     $output->{status} = "error";
-    &output($output);
+    &output();
   }
 }
 
@@ -301,7 +301,7 @@ if ($vars{action} eq "template") {
     $output->{error} = "the requested data type does not exist";
   }
 
-  &output($output);
+  &output();
 } elsif ($vars{action} eq "templateList") {
   if (-d $vars{templatedir}) {
     if (opendir(my $dh, $vars{templatedir})) {
@@ -321,32 +321,32 @@ if ($vars{action} eq "template") {
     $output->{status} = "error";
     $output->{error} = "the metadata directory does not exist";
   }
-  &output($output);
+  &output();
 } elsif ($vars{action} eq "upload") {
   my $json = JSON->new();
-  my $attr_str = $self->json->encode({ "type" => "inbox", "user" => $vars{user} });
+  my $attr_str = $json->encode({ "type" => "inbox", "user" => $vars{user} });
   if (-f $vars{data_file} ) {
     my $content  = [ attributes => [ undef, "attributes.json", Content => $attr_str ], upload => [ $vars{data_file} ] ];
-    &request($output, $vars{shockurl}."/node", 1, "post", $content);
+    &request($vars{shockurl}."/node", 1, "post", $content);
   } else {
     $output->{status} = "error";
     $output->{error} = "The upload file does not exist: $@";
-    &output($output);
+    &output();
   }
 } elsif ($vars{action} eq "validate") {
-  &validate($output, 1);
+  &validate(1);
 } elsif ($vars{action} eq "delete") {
-  &request($output, $vars{shockurl}."/node/".$vars{id}, 1, "delete");
+  &request($vars{shockurl}."/node/".$vars{id}, 1, "delete");
 } elsif ($vars{action} eq "fileList") {
-  &request($output, $vars{shockurl}."/node?query&limit=9999&type=inbox&user=".$vars{user}, 1);
+  &request($vars{shockurl}."/node?query&limit=9999&type=inbox&user=".$vars{user}, 1);
 } elsif ($vars{action} eq "submit") {
-  my $validation = &validate($output);
-  my $shocknode = &request($output, $vars{shockurl}."/node/".$vars{id}, 1, undef, undef, 1);
+  my $validation = &validate();
+  my $shocknode = &request($vars{shockurl}."/node/".$vars{id}, 1, undef, undef, undef, 1);
   &fillAWETemplateAndSubmit($validation, $shocknode);
 } elsif ($vars{action} eq "status") {
-  &request($output, $vars{aweurl}."/job/".$vars{id}, 1);
+  &request($vars{aweurl}."/job/".$vars{id}, 1);
 } elsif ($vars{action] eq "statusList") {
-  &request($output, $vars{aweurl}."/job?query&info.user=".$vars{user}."&info.project=data-importer", 1);
+  &request($vars{aweurl}."/job?query&info.user=".$vars{user}."&info.project=data-importer", 1);
 }
 
 ###
@@ -357,16 +357,14 @@ if ($vars{action} eq "template") {
 
 # print out a low level error and exit with error status
 sub error {
-  my ($error) = @_;
+  my ($err) = @_;
 
-  print STDERR "ERROR:\n$error\nexiting.\n\n";
+  print STDERR "ERROR:\n$err\nexiting.\n\n";
   exit 1;
 }
 
 # print out the output in JSON format and exit with status 0
 sub output {
-  my ($output) = @_;
-  
   my $json = new JSON;
   
   print STDOUT $json->encode($output);
@@ -376,7 +374,7 @@ sub output {
 
 # handle an LWP request, outputs the result or returns it to the calling function if $doReturn is true
 sub request {
-  my ($output, $url, $auth, $method, $content, $doReturn) = @_;
+  my ($url, $auth, $method, $content, $doReturn, $plain) = @_;
 
   my $json = JSON->new();
   my $ua = LWP::UserAgent->new();
@@ -394,7 +392,7 @@ sub request {
     $get = $ua->get($url);
   }
   if ($get->is_success) {
-    if ($output) {
+    if ($plain) {
       my $json = new JSON();
       my $res = $json->decode( $get->content );
       if ($res->{error}) {
@@ -432,8 +430,8 @@ sub request {
 sub fillAWETemplateAndSubmit {
   my ($validation, $shocknode) = @_;
 
-  my $output = { "action" => "submit",
-		 "status" => "ok" };
+  $output = { "action" => "submit",
+	      "status" => "ok" };
 
   my $json = JSON->new();
 
@@ -503,7 +501,7 @@ sub fillAWETemplateAndSubmit {
 
   # perform the submission
   my $content  = [ upload => [ undef, "attributes.json", Content => $aweString ] ];
-  &request($output, $vars{aweurl}."/job", 1, "post", $content);
+  &request($vars{aweurl}."/job", 1, "post", $content);
 }
 
 # validate data against the current template
@@ -548,7 +546,7 @@ sub validate {
 
     # load the metadata
     if (my ($id) = $vars{metadata_file} =~ /^SHOCK\:(.+)$/) {
-      my $data = &request(undef, $vars{shockurl}."/node/".$id."?download", 1);
+      my $data = &request($vars{shockurl}."/node/".$id."?download", 1, undef, 1);
       my $json = JSON->new();
       eval {
 	$data = $json->decode($data);
