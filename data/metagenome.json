@@ -35,23 +35,23 @@
 	      "default": null,
 	      "data": null,
 	      "isMetadata": false,
-	      "aweVariable": "SEQUENCE" }
+	      "aweVariable": "INPUTFILE" }
       ]
   },
   "awe": {
       "tasks": [
 	  {
 	      "cmd": {
-		  "args": "##FILETYPE## @##SEQUENCEFileName## ##SEQUENCE## ##SHOCK##/##SEQUENCE##",
+		  "args": "##FILETYPE## @##INPUTFILEFileName## ##INPUTFILE## ##SHOCK##/##INPUTFILE##",
 		  "description": "validate sequence and generate the workspace document for upload to the workspace",
                   "name": "kb_create_mgm_ws_doc.pl",
 	  "environ": {"KB_AUTH_TOKEN":""}
 	      },
 	      "dependsOn": [],
 	      "inputs": {
-		  "##SEQUENCEFileName##": {
+		  "##INPUTFILEFileName##": {
 		      "host": "##SHOCK##",
-		      "node": "##SEQUENCE##"
+		      "node": "##INPUTFILE##"
 		  }
               },
               "outputs": {
@@ -65,7 +65,7 @@
 	  },
 	  {
 	      "cmd": {
-		  "args": "-type=Communities.DataHandle-1.0 -id=##SEQUENCEFileName## -data=@document.json -workspace=##WORKSPACE##",
+		  "args": "-type=Communities.DataHandle-1.0 -id=##INPUTFILEFileName## -data=@document.json -workspace=##WORKSPACE##",
 		  "description": "create workspace object",
 		  "name": "kb_create_ws_object.pl",
 	  "environ": {"KB_AUTH_TOKEN":""}

@@ -25,7 +25,7 @@
 	      "default": null,
 	      "data": null,
 	      "isMetadata": false,
-	      "aweVariable": "SEQUENCE"
+	      "aweVariable": "INPUTFILE"
 	  }
       ]
   },
@@ -33,16 +33,16 @@
       "tasks": [
 	  {
 	    "cmd": {
-		  "args": "--fastafile @##SEQUENCEFileName## --ws-name ##WORKSPACE## --metadatafile @metadatafile --ws-url ##WORKSPACEURL##",
+		  "args": "--fastafile @##INPUTFILEFileName## --ws-name ##WORKSPACE## --metadatafile @metadatafile --ws-url ##WORKSPACEURL##",
 		  "description": "save data as genome typed object",
 		  "name": "save_ws_genome.pl",
 	  "environ": {"KB_AUTH_TOKEN":""}
 	      },
 	      "dependsOn": [ ],
 	      "inputs": {
-		  "##SEQUENCEFileName##": {
+		  "##INPUTFILEFileName##": {
 		      "host": "##SHOCK##",
-		      "node": "##SEQUENCE##"
+		      "node": "##INPUTFILE##"
 		  },
 		  "metadatafile": {
 		      "host": "##SHOCK##",

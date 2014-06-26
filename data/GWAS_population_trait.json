@@ -31,7 +31,7 @@
         "default": null,
         "data": null,
         "isMetadata": false,
-        "aweVariable": "TRAITMEASURE"
+        "aweVariable": "INPUTFILE"
       }
     ]
   },
@@ -39,7 +39,7 @@
     "tasks": [
       {
         "cmd": {
-          "args": "##WORKSPACEURL## ##WORKSPACE## @md_file @##TRAITMEASUREFileName##",
+          "args": "##WORKSPACEURL## ##WORKSPACE## @md_file @##INPUTFILEFileName##",
           "description": "validate Trait data",
           "name": "kb_validate_trait.pl",
 	  "environ": {"KB_AUTH_TOKEN":""}
@@ -51,9 +51,9 @@
 		      "host": "##SHOCK##",
 		      "node": "##METADATA##"
 		  },
-		  "##TRAITMEASUREFileName##": {
+		  "##INPUTFILEFileName##": {
 		      "host": "##SHOCK##",
-		      "node": "##TRAITMEASURE##"
+		      "node": "##INPUTFILE##"
 		  }
 
               },
@@ -68,7 +68,7 @@
 	  },
 	 
          { "cmd": {
-	     "args": "-type=KBaseGwasData.GwasPopulationTrait -id=##TRAITMEASUREFileName## -data=@document.json -workspace=##WORKSPACE##",
+	     "args": "-type=KBaseGwasData.GwasPopulationTrait -id=##INPUTFILEFileName## -data=@document.json -workspace=##WORKSPACE##",
 	     "description": "create workspace object",
 	     "name": "kb_create_ws_object.pl",
 	     "environ": {"KB_AUTH_TOKEN":""}

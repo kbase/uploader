@@ -13,7 +13,7 @@
     };
 
     widget.callback = null;
-    widget.cookiename = "kbauth";
+    widget.cookiename = "kbase_session";
     widget.authResources = { "default": "KBase",
 			     "KBase": { "icon": "KBase_favicon.ico",
 					"prefix": "kbgo4711" } };
@@ -167,9 +167,9 @@
 			   stm.Authentication = data.token;
 			   jQuery('#loginModal').modal('hide');
 			   jQuery('#msgModal').modal('show');
-//			   console.log(data.token);
-			   jQuery.cookie('kbauth', JSON.stringify({ "uname": data.user_id,
-								    "token": data.token }), { expires: 7 });
+			   jQuery.cookie(Retina.WidgetInstances.login[index].cookiename,
+					 JSON.stringify({ "uname": data.user_id,
+							  "token": data.token }), { expires: 7 });
 			   if (Retina.WidgetInstances.login[index].callback && typeof(Retina.WidgetInstances.login[index].callback) == 'function') {
 			       Retina.WidgetInstances.login[index].callback.call({ 'action': 'login',
 										   'result': 'success',
@@ -179,8 +179,9 @@
 		       }, 
 	               error: function(jqXHR, textStatus, errorThrown) {
 	                   document.getElementById('failure').innerHTML = '<div class="alert alert-error"><button type="button" class="close" data-dismiss="alert">&times;</button><strong>Error:</strong> Login failed.</div>';
-			   jQuery.cookie('kbauth', JSON.stringify({ "uname": null,
-								    "token": null }), { expires: 7 });
+			   jQuery.cookie(Retina.WidgetInstances.login[index].cookiename,
+					 JSON.stringify({ "uname": null,
+							  "token": null }), { expires: 7 });
 			   if (Retina.WidgetInstances.login[index].callback && typeof(Retina.WidgetInstances.login[index].callback) == 'function') {
 			       Retina.WidgetInstances.login[index].callback.call({ 'action': 'login',
 										   'result': 'failed',
