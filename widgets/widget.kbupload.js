@@ -49,7 +49,7 @@
 	var target = params.target;
 
 	// introductory text, always displayed
-	var introSection = "<h4>Overview</h4><p style='margin-top: 10px;'>The KBase Data Importer allows the creation of KBase typed objects for further analysis. The process of creating a typed object typically involves adding data about the data (metadata). We support a number of community standards to import metadata.</p>\
+	var introSection = "<h4>Overview</h4><p style='margin-top: 10px;'>The KBase Data Importer allows the creation of KBase typed objects for further analysis. The process of creating a typed object typically involves adding data about the data (metadata). We support a number of community standards to import metadata. If metadata is required for your chosen data type, you can download an Excel spreadsheet by clicking the <b>download Excel template</b> button in step 2. Once you have filled out the spreadsheet and have uploaded it to the staging area (step 1), it will become available for selection in step 2.</p>\
 <p>The typed objects will be placed in a workspace of your choice.</p>\
 <p>Please note the you will not be able to download data uploaded to KBase until it is validated and processed. Finally you can proceed with the creation of a typed Workspace object.</p>";
 
