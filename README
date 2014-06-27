@@ -20,6 +20,7 @@ and $pipeline_name must be included into the list in the config.js file.
 Overview
 
 The KBase Data Importer allows users to upload data for use in KBase. To prevent misuse of online available data storage capacity, the DataImporter implements a two step procedure. First a user uploads their data into a staging area. In this temporary space, the user can perform basic operations on the uploaded files, like deletion, sequence file type conversion or de-multiplexing. Then they select a data processing pipeline which validates the file integrity for the scientific procedures the user wants to perform with the data. Feedback about progress, success or failure of the pipeline, is available to the user in the interface. Upon successful completion, the chosen pipeline will create a workspace object in a user chosen (possibly newly created) workspace.
+
 Interface
 
 The DataImporter is presented on a standalone HTML page. Until the user has authenticated against the KBase auth service via a login screen, no functionality is available.
@@ -43,12 +44,17 @@ Files uploaded to the staging area are stored in SHOCK with the acls of the curr
 Pipelines
 
 The available pipelines are defined by pipeline structure files shipped with the DataImporter. New pipelines can be added by adding pipeline structure files. These files have different sections that describe:
-The interface sections displayed to the user, including the informational text, file slot fields and additional input fields. Workspace selection / creation is included automatically for all pipelines.
-The AWE workflow template is filled in with the user inputs and then sent to an AWE instance for execution.
-The metadata template (if any): Buttons that make the template available to the user in JSON format or as an Excel spreadsheet are available in the interface section. Metadata slots can be automatically validated in the interface in real time.
+
+- The interface sections displayed to the user, including the informational text, file slot fields and additional input fields. Workspace selection / creation is included automatically for all pipelines.
+- The AWE workflow template is filled in with the user inputs and then sent to an AWE instance for execution.
+- The metadata template (if any): Buttons that make the template available to the user in JSON format or as an Excel spreadsheet are available in the interface section. Metadata slots can be automatically validated in the interface in real time.
+
 Pipeline Execution
+
 The commands that are listed in an AWE workflow template must be implemented and made available on the AWE instance.
+
 Pipeline Structure Files
+
 A pipeline structure file is a JSON document with the following structure
 
 { name: “MyCustomPipeline”,
@@ -73,36 +79,422 @@ A pipeline structure file is a JSON document with the following structure
     }
 }
 
-The format of the metadata template as well as examples are available here.
-An example AWE workflow template is available here. Documentation is available in section 4 of this document.
-AWE Workflow Document Quick Reference
+Metadata and AWE workflow templates are explained in the next sections.
+
+Metadata Template
+
+Global Definitions
+
+the name property of an object is always a string, unique to the level the object is a part of. The string must match /^\w+$/
+the label property of an object is a string, unique to the level the object is part of. It must be human readable and user friendly
+the description property of an object should be a sentence or very short paragraph, describing the nature of the object
+
+Template
+
+A template is a complete definition of what composes a valid dataset. It describes a nested object structure whose leaves are key value pairs of data. It contains all information to validate a dataset against the templates definition.
+
+A template object has the following properties:
+
+* name, label and description, as defined in the global definitions
+* cvs - an object that holds all controlled vocabularies or validation functions thereof used in the template
+* groups - an object holding the structure definitions
+
+These attributes are described in the sections below. A template may hold any additional number of fields at any level of its hierarchy, as long as the ones defined in this article exist.
+
+CVs
+
+The cvs attribute of a template is a hash where the key is the name of the controlled vocabulary and the value is either a function, taking a value to validate or a hash of valid terms pointing to true.
+
+Groups
+
+The groups attribute holds the structure definition. It is a hash where the keys are group names and the value is the group definition. A group definition has the following attributes:
+
+* name, label and description as described in the global definitions
+* mandatory - a boolean indicating whether a valid dataset must have at least one instance of this group
+* toplevel - a boolean defining whether this group is present at the top of the dataset hierarchy
+
+A group may have a subgroups attribute, specifying groups nested within this group. The attribute is a hash of group names, the value is an object with the following attributes:
+
+* label - as defined in the global definitions
+* mandatory - a boolean indicating whether at least one instance of this groups is required in a dataset for it to be valid
+* type - a string that is either “list” or “instance”, indicating whether there can be one or multiple instances of this subgroup in this group of a valid dataset
+
+A group may have a fields attribute, specifying the leaf nodes of the object. The field attribute is a hash of field names, pointing to an object with the following attributes:
+
+* name, label and description as defined in the global definitions
+* mandatory - a boolean specifying whether this value must be given in a valid dataset
+* default - the default value of this field
+* type - a string indicating how to render an input element for this field in a dataset entry interface for this template
+* validation - an object with two attributes: type, a string that is either “none”, “regexp” or “cv”. If the value of the type attribute is “regexp”, the validation object must have a value attribute which is a regular expression, validating a data string for this field. If the value of the type attribute is “cv”, the validation object must have a value attribute whose value is the name of a cv in the cvs attribute of the template.
+* index - an integer defining the order in which this field should appear
+
+A group must either have a fields attribute, a subgroups attribute or both to be part of a valid template.
+
+Example Template
+
+{ name: “myTemplate”,
+  label: “my cool template”,
+  description: “a cool template for my metadata”,
+  cvs: { gender: { male: true,
+                   female: true }
+  },
+  groups: { project: { name: “project”,
+                       label: “Project”,
+                       description: “a metagenomic project”,
+                       mandatory: true,
+                       toplevel: true,
+                       subgroups: { sample: { label: “samples”,
+                                              mandatory: true,
+                                              type: “list” } },
+                       fields: { gender: { name: “gender”,
+                                           label: “Gender”,
+                                           description: “gender of the PI”,
+                                           type: “text”,
+                                           mandatory: true,
+                                           validation: { type: “cv”,
+                                           value: “gender” } },
+                                 PI_firstname: … },
+             sample: …
+}
+
+Example Data
+
+{ project: { PI_firstname: “Hans”,
+             gender: “male”,
+             samples: [ { name: “sample1”,
+                          biome: “air”,
+                          country: “USA”,
+                          ... } ] } }
+             
+AWE Workflow Document
+
 The fields of the workflow are defined as follows:
 
-The template is a JSON object with two top-level attributes:
+The template is a JSON object with a single top-level attribute:
 
-Info
-This optional attribute is for informational purposes only and can be reused for any pipeline.
+tasks
+This attribute is specific for different pipelines. It is a list that contains a separate entry for each task. Task entries have the following required fields:
 
-Task List
-This attribute is specific for different pipelines. It contains a separate entry for each task. Task entries have the following required fields:
+cmd - a hash describing the executed script for this task. It has the following attributes:
+    args - the arguments to the script. Putting an @ symbol in front of a string identifies a file name.
+    description - a short textual description of this task. This will be shown when hovering over the status dot in the submission overview of the DataImporter
+    name - the name of the script
+environ - a hash of environment variables that should be available in the executed script. The key KB_AUTH_TOKEN with an empty string as a value can be put here to make the token of the submitting user available to the scripts.
 
-Taskid - a number to representing this task
+dependsOn - the ids of the tasks that need to complete before this task can start
 
-Cmd.name - the command name
+inputs - a hash of input file names pointing to a hash with the attributes host, node and origin. Host is the url of the SHOCK host and node the node id. Origin is optional and is the taskid of the task this file originates from. Please note that though the taskid is an integer, it must be passed as a string representing that integer. 
 
-Cmd.args -  if it is the input file, use @ before the word representing the input file.
+outputs - a hash of output file names pointing to a hash with the attributes host and node. Host is the url of the SHOCK host and node the node id. The node id for output files should be “-” since it is only known after creation time.
 
-DependOn - the ids of the tasks it depends on
+taskid - a unique integer to identify this task. Please note that though the taskid is an integer, it must be passed as a string representing that integer.
 
-Input - the input file name, shock host, and node, if node is unknown (for some intermediate files), use “-“ or just omit the “node” field
+totalwork - the number of work units to be split for this task.
 
-Output - the output filename, shock host, and node, if node is unknown (for some intermediate files), use “-“  just omit the “node” field
+The interface part of the pipeline structure file allows you to assign AWE variable names to user input fields. You can place these encased in double hashtags (##myVariable##) anywhere in the AWE Workflow document. They will be replaced by the values the user input into the according field. You can place the same variable multiple times, all occurrences will be replaced.
 
-PartInfo - specify which input and output will be split and merged. If there is only one input and one output, this field can be omitted.
+There is a set of default variables that are always available from the interface:
 
-TotalWork - the number of work units to be split for this task.
+SHOCK - the url of the Shock server hosting the data
+WORKSPACE - the name of the user selected workspace
+WORKSPACEURL - the url of the workspace server
 
-MaxWorkSize - controls the maximum size of each split in MB. This is prioritized over the TotalWork attribute
+Example Template
 
-Hashtags (#xxx) can be used as variables that will be replaced by the command line arguments of the job submitter.
+{ "tasks": [
+	  {
+	    "cmd": {
+		  "args": "--fastafile @##INPUTFILEFileName## --ws-name ##WORKSPACE## --metadatafile @metadatafile --ws-url ##WORKSPACEURL##",
+		  "description": "save data as genome typed object",
+		  "name": "save_ws_genome.pl",
+	  "environ": {"KB_AUTH_TOKEN":""}
+	      },
+	      "dependsOn": [ ],
+	      "inputs": {
+		  "##INPUTFILEFileName##": {
+		      "host": "##SHOCK##",
+		      "node": "##INPUTFILE##"
+		  },
+		  "metadatafile": {
+		      "host": "##SHOCK##",
+		      "node": "##METADATA##"
+		  }
+	      },
+	      "taskid": "0",
+	      "totalwork": 1
+	  }
+      ]
+}
 
+Full Pipeline Document Example
+
+{
+    // this is the name of the template as it will be shown in the dropdown menu
+    "name": "Template",
+
+    // this section describes the interface section shown in the perform submission section
+    "interface": {
+
+	// the introductory section is defined here
+	"intro": {
+
+	    // title of the submission pipeline section
+	    "title": "submission pipeline name",
+	    
+	    // text paragraph below the title
+	    "text": "description of what your submission pipeline does here",
+
+	    // the template downloaded through the buttons that can be enabled here
+	    // is generated from the "metadata" section below
+
+	    // setting this to true will show the excel template button
+	    "excel": true,
+
+	    // setting this to true will show the json template button
+	    "json": false
+	},
+
+	// the inputs section defines the input fields in the submission pipeline section
+	// each entry in this array represents one input field
+	"inputs": [ 
+
+	    // this dropdown box shows metadata files
+	    { 
+		// the type defines the appearance of the input field
+		"type": "dropdown",
+
+		// this list specifies the file endings that the list is filled with
+		// if the input field is not supposed to be filled with files from the
+		// staging area, set this to null
+		"filetype": [ "xlsx" ],
+
+		// the label of the input field
+		"label": "select genome metadata file",
+
+		// help text displayed on the input field
+		"help": null,
+
+		// index of the default value to be selected
+		"default": null,
+
+		// data to fill a list with. This is a list of hashes with value and label
+		// keys to fill the dropdown with
+		"data": null,
+
+		// if this is set to true, a metadata validation button is shown
+		// next to the input field
+		"isMetadata": true,
+
+		// this is the variable name to be used in the AWE workflow
+		// the value of this field will replace the variable before submission to
+		// the workflow
+		"aweVariable": "METADATA"
+	    },
+
+	    // this will create the input file box
+	    {
+
+		// multiselect is a file selection input
+		"type": "multiselect",
+
+		// this filetype attribute defines multiple valid file types
+		// all files in the staging area with this ending will be selectable
+		// in this input
+		"filetype": [ "fasta", "fna" ],
+
+		// the label of the file selection
+		"label": "select sequence file(s)",
+
+		// the help text displayed next to the input
+		"help": null,
+		
+		// the default selection, this is not available for file selects
+		"default": null,
+
+		// the data to fill the select with, this is also
+		// ignored for file selects
+		"data": null,
+
+		// this is not a metadata file, set the isMetadata to false
+		"isMetadata": false,
+
+		// the AWE workflow variable that will be replaced by the selected
+		// file
+		"aweVariable": "INPUTFILE"
+	    }
+	]
+    },
+
+    // this section contains the AWE workflow
+    // only the tasks section of the workflow must be given, the rest will be automatically generated
+    // variables named in the inputs part of the interface section can be used anywhere within the workflow
+    // and must be encased with ## tags
+    // the variables WORKSPACE, WORKSPACEURL and SHOCK are reserved variables that will always be filled
+    // automatically
+    "awe": {
+
+	// each task in this list will be executed by the pipeline
+	"tasks": [
+	    {
+
+		// this is the command that is invoked
+		"cmd": {
+
+		    // the arguments passed to the command
+		    // file arguments must be prefixed with @ and their name is defined in the inputs section below
+		    "args": "--inputfile @inputfile --ws-name ##WORKSPACE## --metadatafile @metadatafile --ws-url ##WORKSPACEURL##",
+
+		    // this description will be shown in the hoverover of the stage dot in the status
+		    // display of the pipeline jobs
+		    "description": "get the input data and create a workspace object from it",
+
+		    // this is the name of the AWE script called
+		    // this script must exist on the AWE client machine. If you create your own AWE scripts,
+		    // they should be placed in the awe directory in the uploader repository
+		    "name": "myAWEscript.pl",
+
+                    // this puts the KBase Authentication token into the environment of the script
+                    "environ": {"KB_AUTH_TOKEN":""}
+		},
+
+		// taskid of the tasks that need to be successfully completed before this task
+		// can run. This may be a comma separated list.
+		"dependsOn": [ ],
+
+		// hash of input files passed to the script, the key being the name of the input parameter
+		// this name must be used in the args section above, preceeded by @
+		"inputs": {
+
+		    // the file host will always be shock, the SHOCK url will be automatically set
+		    // the node id will be filled from a file select input in the interface
+		    // which needs to have the aweVariable attribute set to the node value (in this
+		    // case INPUTFILE, encased by ##
+		    "inputfile": {
+			"host": "##SHOCK##",
+			"node": "##INPUTFILE##"
+		    },
+		    "metadatafile": {
+			"host": "##SHOCK##",
+			"node": "##METADATA##"
+		    }
+		},
+
+		// numerical id of this task to be used as a reference in depensOn lists
+		"taskid": "0",
+
+		// the total amount of workunits. This should normally be 1.
+		"totalwork": 1
+	    }
+	]
+    },
+
+    // this section describes the metadata template. It is used to define the structure of the information
+    // about the data to be imported. It is also used to generate Excel spreadsheets for input of this information
+    // and to validate submitted data
+    "metadata": {
+
+	// this is used as the filename of the downloaded Excel spreadsheet
+	"name": "KBaseGenomeTemplate",
+
+	// this may be used to label the template (currently optional)
+	"label": "KBase Genome Metadata Template",
+
+	// a short description about the object described by this metadata (currently optional)
+	"description": "Template to specify meta data for loading a genome from a FASTA sequence file to a KBaseGenomes.Genome typed object in a workspace",
+
+	// a list of controlled vocabularies used in validation of data matching this template
+	"cvs": {
+
+	    // each key represents one controlled vocabulary
+	    // each vocabulary is a hash of valid terms pointing to true
+            "domain": {
+		"Bacteria":true,
+		"Archaea":true,
+		"Eukaryota":true,
+		"Unknown":true
+            },
+
+	    "gender": {
+		"male": true,
+		"female": true
+	    }
+	},
+
+	// each group represents one sheet in the Excel workbook
+	"groups" : {
+
+	    // this is an example group
+            "main": {
+
+		// unique name of this group
+		"name":"main",
+
+		// label (used as sheet name)
+		"label":"Basic Info",
+
+		// a short description of this group
+		"description":"basic information",
+
+		// boolean indicating whether this group must be present
+		"mandatory": true,
+
+		// if set to true, this is a root group. Otherwise it may be a group within
+		// another group (nested)
+		"toplevel":true,
+
+		// hash of groups that are contained within this group
+		"subgroups": {},
+
+		// list of fields in this group
+		"fields":{
+
+		    // each field has a set of attributes
+                    "field_a": {
+
+			// unique name of the field
+			"name":"scientific_name",
+
+			// label of the field, used in the spreadsheet
+			"label":"Scientific Name",
+
+			// a short description of the field, also used in the spreadsheet
+			"description":"the scientific name of the genome",
+
+			// type of the value, this may be used by autogenerated interfaces to
+			// generate an input mask for this field
+			"type":"text",
+
+			// default to be filled in if the user did not supply a value
+			"default":"Unknown",
+
+			// if this is true, the user must fill in this value in order for
+			// the data to validate against the template
+			"mandatory":"true",
+
+			// type of how this field should be validated, can be either cv or regexp
+			"validation": { "type":"none" },
+
+			// index used to order the fields in the spreadsheet
+			"index": 0
+                    },
+
+		    // this field is using a controlled vocabulary
+                    "domain": {
+			"name":"domain",
+			"label":"Domain",
+			"description":"the domain of the genome",
+			"type":"text",
+			"default":"Unknown",
+			"mandatory":"true",
+
+			// the validation type is set to cv, the value is set to domain. Hence the validator
+			// will check the cvs section of this template for the domain cv
+			// data for this field will only be valid if the term is listed in the domain cv
+			"validation": { "type":"cv", "value":"domain" },
+			"index": 1
+                    }
+		}
+            }
+	}
+    }
+}
