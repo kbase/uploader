@@ -225,7 +225,6 @@
 		    "session": items[1].split("=")[1],
 		    "uid": items[2].split("=")[1],
 		    "token": items[3].split("=")[1].replace(/EQUALSSIGN/g, "=").replace(/PIPESIGN/g, "|") };
-	console.log(jsn);
 	return jsn;
     };
 
