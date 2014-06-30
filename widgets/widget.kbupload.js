@@ -25,6 +25,7 @@
     widget.auth = false;
     widget.user = null;
     widget.token = null;
+    widget.currentFile = 0;
     widget.newWorkspaceName = "";
     widget.jsonTemplates = {};
     widget.templates = {};
@@ -93,60 +94,16 @@
 	var fuDialog = widget.fu = document.createElement('input');
 	fuDialog.setAttribute('type', 'file');
 	fuDialog.setAttribute('style', 'display:none;');
+	fuDialog.setAttribute('multiple', 'multiple');
 
 	// handle the change event
 	fuDialog.addEventListener('change', function(event){
-	    
-	    // get the selected file name and make sure it matches one of the allowed file endings
-	    var fn = event.target.files[0].name;
-	    var allowed = false;
-	    for (var i=0;i<Retina.WidgetInstances.kbupload[1].allowedFileEndings.length; i++) {
-		if (fn.match(new RegExp("\."+Retina.WidgetInstances.kbupload[1].allowedFileEndings[i]+"$"))) {
-		    allowed = true;
-		    break;
-		}
-	    }
+	    var widget = Retina.WidgetInstances.kbupload[1];
 
-	    // if the file type is allowed, commence the upload
-	    if (allowed) {
-		var progress = Retina.WidgetInstances.kbupload[1].progress;
-		progress.style.display = "";
-		progress.innerHTML = "";
-		var closeButton = document.createElement('button');
-		closeButton.setAttribute('class', 'close');
-		closeButton.setAttribute('type', 'button');
-		closeButton.setAttribute('data-dismiss', 'alert');
-		progress.appendChild(closeButton);
-		var fileName = document.createElement('p');
-		fileName.innerHTML = 'uploading '+fuDialog.files[0].name;
-		progress.appendChild(fileName);
-		var progressBox = document.createElement('p');
-		progressBox.setAttribute('style', 'margin-bottom: 5px;');
-		Retina.WidgetInstances.kbupload[1].progressCurrent = document.createElement('span');
-		Retina.WidgetInstances.kbupload[1].progressCurrent.innerHTML = 0;
-		progressBox.appendChild(Retina.WidgetInstances.kbupload[1].progressCurrent);
-		var progressTotal = document.createElement('span');
-		progressTotal.innerHTML = ' of '+stm.prettySize(fuDialog.files[0].size)+' complete';
-		progressBox.appendChild(progressTotal);
-		progress.appendChild(progressBox);
-		var pBar = document.createElement('div');
-		pBar.setAttribute('class', 'progress');
-		Retina.WidgetInstances.kbupload[1].pBarInner = document.createElement('div');
-		Retina.WidgetInstances.kbupload[1].pBarInner.setAttribute('class', 'bar');
-		Retina.WidgetInstances.kbupload[1].pBarInner.setAttribute('style', 'width: 0%;');
-		pBar.appendChild(Retina.WidgetInstances.kbupload[1].pBarInner);
-		progress.appendChild(pBar);
-		
-		// issue the SHOCK upload command on this file upload dialog, set the progress function callback
-		// to onProgress and the completion callback to uploadComplete (both functions within this widget
-		SHOCK.upload(fuDialog, null, null, Retina.WidgetInstances.kbupload[1].uploadComplete, Retina.WidgetInstances.kbupload[1].onProgress).then( function() {
-		    Retina.WidgetInstances.kbupload[1].progress.style.display = "none";
-		});
-	    } else {
-		
-		// inform the user that the selected filetype is not allowed
-		alert("The selected filetype is not allowed.\nValid filetypes are:\n*."+Retina.WidgetInstances.kbupload[1].allowedFileEndings.join(", *."));
-	    }
+	    // reset the current file index
+	    widget.currentFile = 0;
+	    widget.processFileUpload();
+	    
 	});
 	fu.appendChild(fuDialog);
 	
@@ -170,6 +127,69 @@
 	var result = '<div><select id="shock_result" multiple size=10 onchange="Retina.WidgetInstances.kbupload[1].showFileOptions(this.options[this.selectedIndex].value);" style="width: 400px;"></select><div id="fileOptions" style="float: right;width: 500px;"></div></div>';
 	inb.innerHTML = result;
 	target.appendChild(inb);
+    };
+
+    widget.processFileUpload = function () {
+	var widget = Retina.WidgetInstances.kbupload[1];
+
+	if (widget.fu.files.length > widget.currentFile) {
+
+	    // get the selected file name and make sure it matches one of the allowed file endings
+	    var fn = widget.fu.files[widget.currentFile].name;
+	    var allowed = true;//false;
+	    for (var i=0;i<widget.allowedFileEndings.length; i++) {
+		if (fn.match(new RegExp("\."+widget.allowedFileEndings[i]+"$"))) {
+		    allowed = true;
+		    break;
+		}
+	    }
+	    
+	    // if the file type is allowed, commence the upload
+	    if (allowed) {
+		var progress = widget.progress;
+		progress.style.display = "";
+		progress.innerHTML = "";
+		var closeButton = document.createElement('button');
+		closeButton.setAttribute('class', 'close');
+		closeButton.setAttribute('type', 'button');
+		closeButton.setAttribute('data-dismiss', 'alert');
+		progress.appendChild(closeButton);
+		var fileName = document.createElement('p');
+		fileName.innerHTML = 'uploading '+widget.fu.files[widget.currentFile].name + (widget.fu.files.length > 1 ? " (file "+(widget.currentFile + 1)+" of "+widget.fu.files.length+")" : "");
+		progress.appendChild(fileName);
+		var progressBox = document.createElement('p');
+		progressBox.setAttribute('style', 'margin-bottom: 5px;');
+		widget.progressCurrent = document.createElement('span');
+		widget.progressCurrent.innerHTML = 0;
+		progressBox.appendChild(widget.progressCurrent);
+		var progressTotal = document.createElement('span');
+		progressTotal.innerHTML = ' of '+stm.prettySize(widget.fu.files[widget.currentFile].size)+' complete';
+		progressBox.appendChild(progressTotal);
+		progress.appendChild(progressBox);
+		var pBar = document.createElement('div');
+		pBar.setAttribute('class', 'progress');
+		widget.pBarInner = document.createElement('div');
+		widget.pBarInner.setAttribute('class', 'bar');
+		widget.pBarInner.setAttribute('style', 'width: 0%;');
+		pBar.appendChild(widget.pBarInner);
+		progress.appendChild(pBar);
+		
+		// issue the SHOCK upload command on this file upload dialog, set the progress function callback
+		// to onProgress and the completion callback to uploadComplete (both functions within this widget
+		SHOCK.upload(widget.fu, null, null, widget.uploadComplete,widget.onProgress, widget.currentFile).then( function() {
+		    var widget = Retina.WidgetInstances.kbupload[1];
+		    widget.progress.style.display = "none";
+		    widget.currentFile++;
+		    widget.processFileUpload();
+		});
+	    } else {
+		
+		// inform the user that the selected filetype is not allowed
+		alert("The selected filetype of file '"+fn+"' is not allowed.\nValid filetypes are:\n*."+Retina.WidgetInstances.kbupload[1].allowedFileEndings.join(", *."));
+		widget.currentFile++;
+		widget.processFileUpload();
+	    }
+	}
     };
 
     // the submission area

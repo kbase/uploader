@@ -222,7 +222,7 @@
 	return SHOCK.upload(null, node, attr, ret);
     };
     
-    SHOCK.upload = function (input, node, attr, ret, progress) {
+    SHOCK.upload = function (input, node, attr, ret, progress, index) {
 	var url = SHOCK.url+'/node';
 	var promise = jQuery.Deferred();
 
@@ -241,7 +241,7 @@
 	    }
 	    
 	    var files = input.files;
-	    if (files.length > 1) {
+	    if (files.length > 1 && index == null) {
 		console.log("error: you can only submit one file at a time");
 		return;
 	    }
@@ -249,10 +249,14 @@
 		console.log("error: no file selected");
 		return;
 	    }
+
+	    if (! index) {
+		index = 0;
+	    }
 	    
 	    // upload the file
 	    var chunkSize = SHOCK.chunkSize;
-	    var file = files[0];
+	    var file = files[index];
 	    var chunks = Math.ceil(file.size / chunkSize);
 	    SHOCK.file = file;
 	    
