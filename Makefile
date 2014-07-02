@@ -43,7 +43,7 @@ uninstall: clean
 	-rm -rf $(SERVICE_STORE)
 	-rm -rf $(SERVICE_DIR)
 
-deploy: deploy-ui deploy-scripts
+deploy: deploy-ui deploy-scripts deploy-docs
 	@echo "Deploying UI"
 
 deploy-ui: build-ui
