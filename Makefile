@@ -57,7 +57,8 @@ build-ui:
 deploy-client: 
 	@echo "no client"
 
-
+build-docs:
+	pod2html --infile=scripts/uploader.pl --outfile=docs/uploader.html --title="KBase Uploader Command Line Interface"
 
 deploy-docs: build-docs
 
