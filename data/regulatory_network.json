@@ -1,0 +1,99 @@
+{ "name": "regulatory network",
+  "interface": {
+      "intro": {
+	  "title": "regulatory network submission",
+	  "text": "A regulatory network submission requires a file in RegPrecise format (see http://regprecise.lbl.gov/RegPrecise/ExportServlet?type=gene&genomeId=52 as an example)",
+	  "excel": true,
+	  "json": false
+      },
+      "inputs": [ 
+	  { 
+	      "type": "dropdown",
+	      "filetype": [ "xlsx" ],
+	      "label": "select regulome metadata file",
+	      "help": null,
+	      "default": null,
+	      "data": null,
+	      "isMetadata": true,
+	      "aweVariable": "METADATA"
+	  },
+	  { 
+	      "type": "text",
+	      "label": "Enter genome id",
+	      "help": null,
+	      "default": "",
+	      "data": null,
+	      "isMetadata": false,
+	      "aweVariable": "GENOME"
+	  },
+	  { 
+	      "type": "multiselect",
+	      "filetype": [ "txt" ],
+	      "label": "select RegPrecise text file (e.g., bsub-regulons.txt)",
+	      "help": null,
+	      "default": null,
+	      "data": null,
+	      "isMetadata": false,
+	      "aweVariable": "INPUTFILE"
+	  }
+      ]
+  },
+  "awe": {
+      "tasks": [
+	  {
+	    "cmd": {
+		  "args": "--regprecisefile @##INPUTFILEFileName## --genome @##GENOME## --ws-name ##WORKSPACE## --ws-url ##WORKSPACEURL## --metadatafile @metadatafile",
+		  "description": "save data as regulatory network typed object",
+		  "name": "save_ws_regulatory_network.pl",
+	  "environ": {"KB_AUTH_TOKEN":""}
+	      },
+	      "dependsOn": [ ],
+	      "inputs": {
+		  "##INPUTFILEFileName##": {
+		      "host": "##SHOCK##",
+		      "node": "##INPUTFILE##"
+		  },
+		  "##GENOME##": {
+		      "host": "##SHOCK##",
+		      "node": "##GENOME##"
+		  },
+		  "metadatafile": {
+		      "host": "##SHOCK##",
+		      "node": "##METADATA##"
+		  }
+	      },
+	      "taskid": "0",
+	      "totalwork": 1
+	  }
+      ]
+  },
+  "metadata": {
+      "name": "KBaseRegulatoryNetworkTemplate",
+      "label": "KBase Regulatory Network Metadata Template",
+      "description": "Template to specify meta data for loading a regulatory network from a RegPrecise text file to a KBaseRegulation.Regulome typed object in a workspace",
+      "cvs": {
+      },
+      "groups" : {
+          "basic_info":{
+              "name":"basic_info",
+              "label":"BasicRegulatoryNetworkInfo",
+              "description":"basic regulatory network information",
+              "mandatory": true,
+              "toplevel":true,
+              "subgroups": {},
+              "fields":{
+                  "scientific_name": {
+                      "name":"scientific_name",
+                      "label":"Scientific Name",
+                      "description":"the scientific name of the genome",
+                      "type":"text",
+                      "default":"Unknown",
+                      "mandatory":"true",
+                      "validation": { "type":"none" },
+		      "index": 0
+                  }
+	      }
+	  }
+      }
+  }
+}
