@@ -1,6 +1,6 @@
 (function () {
     // make this a Retina widget
-    widget = Retina.Widget.extend({
+    var widget = Retina.Widget.extend({
         about: {
             title: "KBase Data Importer",
             name: "kbupload",
@@ -35,7 +35,7 @@
 
     // initial display
     widget.display = function (params) {
-	widget = Retina.WidgetInstances.kbupload[1];
+	var widget = Retina.WidgetInstances.kbupload[1];
 
 	// set SHOCK url to data in config.js
 	SHOCK.url = RetinaConfig.shock;
@@ -70,7 +70,7 @@
 
     // staging area
     widget.inboxDisplay = function (target) {
-	widget = Retina.WidgetInstances.kbupload[1];
+	var widget = Retina.WidgetInstances.kbupload[1];
 
 	// create a div for the intro HTML
 	var intro = document.createElement('div');
@@ -194,7 +194,7 @@
 
     // the submission area
     widget.submissionDisplay = function (target) {
-	widget = Retina.WidgetInstances.kbupload[1];
+	var widget = Retina.WidgetInstances.kbupload[1];
 
 	// the intro div holds the pipeline selection
 	// currently its contents are hardcoded, in future this will be filled from the
@@ -257,7 +257,7 @@ The time between submission and a resulting data object in the workspace may tak
     // in future this data will be loaded from the pipeline structure files and include
     // the input elements
     widget.showSubtype = function (sel) {
-	widget = Retina.WidgetInstances.kbupload[1];
+	var widget = Retina.WidgetInstances.kbupload[1];
 
 	// get the target DOM element
 	var result = document.getElementById('subtype_description');
@@ -276,11 +276,13 @@ The time between submission and a resulting data object in the workspace may tak
 	widget.jsonTemplates = {};
 
 	// recompute all metadata files agains the current template
-	for (var i in stm.DataStore.inbox) {
-	    if (stm.DataStore.inbox.hasOwnProperty(i)) {
-		var data = stm.DataStore.inbox[i];
-		if (data.attributes.hasOwnProperty('name') && data.attributes.name.match(/\.xlsx$/)) {
-		    widget.excelToJSON(i);
+	if (widget.templates.hasOwnProperty(templateName) && widget.templates[templateName].hasOwnProperty('metadata')) {
+	    for (var i in stm.DataStore.inbox) {
+		if (stm.DataStore.inbox.hasOwnProperty(i)) {
+		    var data = stm.DataStore.inbox[i];
+		    if (data.attributes.hasOwnProperty('name') && data.attributes.name.match(/\.xlsx$/)) {
+			widget.excelToJSON(i);
+		    }
 		}
 	    }
 	}
@@ -394,7 +396,7 @@ The time between submission and a resulting data object in the workspace may tak
 
     // retrieves the staging area files for the current user from SHOCK
     widget.showShockResult = function (data) {
-	widget = Retina.WidgetInstances.kbupload[1];
+	var widget = Retina.WidgetInstances.kbupload[1];
 
 	// hashify the array result so we can better store it in the DataStore
 	var dataHash = {};
@@ -428,7 +430,7 @@ The time between submission and a resulting data object in the workspace may tak
 
     // retrieves the pipeline stati for the current user from AWE
     widget.showAWEResult = function (data) {
-	widget = Retina.WidgetInstances.kbupload[1];
+	var widget = Retina.WidgetInstances.kbupload[1];
 
 	var target = document.getElementById('pipelineSection');
 
@@ -467,7 +469,7 @@ The time between submission and a resulting data object in the workspace may tak
 
     // delete an AWE job
     widget.deleteJob = function(button, id) {
-	widget = Retina.WidgetInstances.kbupload[1];
+	var widget = Retina.WidgetInstances.kbupload[1];
 
 	button.parentNode.parentNode.parentNode.removeChild(button.parentNode.parentNode);
 	
@@ -477,7 +479,7 @@ The time between submission and a resulting data object in the workspace may tak
     // show additional information and action buttons for a selected file
     // this is issued by a click in the staging area select box
     widget.showFileOptions = function (id) {
-	widget = Retina.WidgetInstances.kbupload[1];
+	var widget = Retina.WidgetInstances.kbupload[1];
 
 	// get the file information from the DataStore
 	var dataItem = stm.DataStore.inbox[id];
@@ -515,14 +517,17 @@ The time between submission and a resulting data object in the workspace may tak
     };
 
     widget.updateFileFields = function () {
-	widget = Retina.WidgetInstances.kbupload[1];
+	var widget = Retina.WidgetInstances.kbupload[1];
 
 	// reset the validation
 	var status = document.getElementById('metadataValidationDiv');
-	Retina.WidgetInstances.kbupload[1].metaDataValidated = false;
-	status.className = "alert";
-	status.innerHTML = "<b>validation pending</b>";
-	widget.metaDataValidated = false;
+	if (status) {
+	    widget.metaDataValidated = false;
+	    status.className = "alert";
+	    status.innerHTML = "<b>validation pending</b>";
+	} else {
+	    widget.metaDataValidated = true;
+	}
 
 	// get the files information from the DataStore
 	var inbox = stm.DataStore.inbox;
@@ -605,7 +610,7 @@ The time between submission and a resulting data object in the workspace may tak
     // callback for the login widget
     // this is issued on login and logout
     widget.authenticated = function (isAuthenticated, token) {
-	widget = Retina.WidgetInstances.kbupload[1];
+	var widget = Retina.WidgetInstances.kbupload[1];
 
 	// clear file information box
 	document.getElementById('fileOptions').innerHTML = "";
@@ -632,7 +637,7 @@ The time between submission and a resulting data object in the workspace may tak
 
     // called from the submission in case a new workspace is requested for the submission result
     widget.createNewWorkspace = function () {
-	widget = Retina.WidgetInstances.kbupload[1];
+	var widget = Retina.WidgetInstances.kbupload[1];
 
 	// check if the user supplied a name for the new workspace
 	var n = document.getElementById('newWorkspaceNameField');
@@ -659,7 +664,7 @@ The time between submission and a resulting data object in the workspace may tak
     // if everything is ok, start the pipeline
     // issued when the user clicks the submit button
     widget.validateSlots = function () {
-	widget = Retina.WidgetInstances.kbupload[1];
+	var widget = Retina.WidgetInstances.kbupload[1];
 
 	// get the interface part of the template
 	var templateName = document.getElementById('subtype').options[document.getElementById('subtype').selectedIndex].text;
@@ -689,7 +694,7 @@ The time between submission and a resulting data object in the workspace may tak
     // perform a submission to AWE
     // issued when the user clicks submit and the validateSlots function succeeds
     widget.submitToAWE = function (attributesNode) {
-	widget = Retina.WidgetInstances.kbupload[1];
+	var widget = Retina.WidgetInstances.kbupload[1];
 	
 	// check which submission type we have
 	var sub = document.getElementById('subtype');
@@ -793,7 +798,7 @@ The time between submission and a resulting data object in the workspace may tak
     
     // retrieve the private workspaces available to the current user
     widget.getWorkspaces = function (cached) {
-	widget = Retina.WidgetInstances.kbupload[1];
+	var widget = Retina.WidgetInstances.kbupload[1];
 
 	// use the version in the DataStore, do not reload
 	if (cached && stm.DataStore.hasOwnProperty('workspaces')) {
@@ -884,7 +889,7 @@ The time between submission and a resulting data object in the workspace may tak
     // progress event for the file upload
     // this updated the progress bar
     widget.onProgress = function (event) {
-	widget = Retina.WidgetInstances.kbupload[1];
+	var widget = Retina.WidgetInstances.kbupload[1];
 	var loaded = event.loaded + (SHOCK.currentChunk * SHOCK.chunkSize);
 	var total = SHOCK.file.size;
 	var percent = parseFloat(loaded / total * 100);
@@ -907,7 +912,7 @@ The time between submission and a resulting data object in the workspace may tak
 
     // update the contents of the staging area
     widget.updateInbox = function () {
-	widget = Retina.WidgetInstances.kbupload[1];
+	var widget = Retina.WidgetInstances.kbupload[1];
 
 	// get the staging area files from SHOCK and call the showShockResult function
 	// once the file information is available
@@ -929,7 +934,7 @@ The time between submission and a resulting data object in the workspace may tak
     // issue a download for the current template in Excel format
     // the type and an empty Excel workbook object is passed to this function
     widget.excelTemplate = function (type, wb) {
-	widget = Retina.WidgetInstances.kbupload[1];
+	var widget = Retina.WidgetInstances.kbupload[1];
 
 	// get the template structure
 	var template = Retina.WidgetInstances.kbupload[1].templates[type].metadata;
@@ -1108,7 +1113,7 @@ The time between submission and a resulting data object in the workspace may tak
 
     // load the metadata template from disc and store them in the widget
     widget.loadTemplates = function () {
-	widget = Retina.WidgetInstances.kbupload[1];
+	var widget = Retina.WidgetInstances.kbupload[1];
 
 	var templateNames = RetinaConfig.templates;
 	var promises = [];
@@ -1302,7 +1307,7 @@ The time between submission and a resulting data object in the workspace may tak
 
     // function to convert Excel metadata files to JSON format
     widget.excelToJSON = function (node) {
-	widget = Retina.WidgetInstances.kbupload[1];
+	var widget = Retina.WidgetInstances.kbupload[1];
 	var xhr = new XMLHttpRequest();
     	var method = "GET";
     	var url = SHOCK.url+'/node/'+node+'?download_raw';
@@ -1325,10 +1330,32 @@ The time between submission and a resulting data object in the workspace may tak
 
     	    // the file is loaded, create a javascript object from it
     	    var wb = xlsx(xhr.response);
+
+	    // determine the current template type
 	    var type = document.getElementById('subtype').options[document.getElementById('subtype').selectedIndex].text;
+
+	    // get the metadata template for this type
 	    var template = Retina.WidgetInstances.kbupload[1].templates[type].metadata;
 
+	    // store the result data
     	    var parsedData = {};
+
+	    // get the label to group and label to field mapping
+	    var l2g = {};
+	    var l2f = {};
+	    for (var i in template.groups) {
+		if (template.groups.hasOwnProperty(i)) {
+		    l2g[template.groups[i].label || i] = i;
+		    l2f[template.groups[i].label || i] = {};
+		    for (var h in template.groups[i].fields) {
+			if (template.groups[i].fields.hasOwnProperty(h)) {
+			    l2f[template.groups[i].label || i][template.groups[i].fields[h].label || h] = h;
+			}
+		    }
+		}
+	    }
+	    
+	    // iterate over the worksheets to find all available groups
 	    var groups = {};
 	    for (var i=0; i<wb.worksheets.length; i++) {
 		var ws = wb.worksheets[i];
@@ -1337,33 +1364,70 @@ The time between submission and a resulting data object in the workspace may tak
 		}
 		groups[ws.name] = 1;
 	    }
+
+	    // iterate over the worksheets to extract the data
 	    for (var i=0; i<wb.worksheets.length; i++) {
+
+		// get the current worksheet from the workbook
 		var ws = wb.worksheets[i];
+
+		// check if this group is in the template
+		if (! l2g.hasOwnProperty(ws.name)) {
+		    continue;
+		}
+
+		// if cell A1 is empty, this sheet has no data
 		if (typeof ws.data[0][0] === "undefined") {
 		    return;
 		}
+
+		// check if cell A1 contains a group name
 		if (groups.hasOwnProperty(ws.data[0][0].value)) {
-		    parsedData[ws.data[0][0].value][ws.name] = [];
-		    for (var j=2;j<ws.data.length;j++) {
+
+		    // check if the user was mistakenly using the comment field
+		    var rowIndex = 2;
+		    if (template.groups[l2g[ws.name]].fields[l2f[ws.name][ws.data[0][1].value]].description != ws.data[1][1].value) {
+			rowIndex = 1;
+		    }
+
+		    // this is a subgroup, iterate over the datasets
+		    for (var j=rowIndex;j<ws.data.length;j++) {
 			if (ws.data[j].length == 0) {
 			    break;
 			}
+
+			// create the current dataset
 			var ds = {};
 			for (var h=0;h<ws.data[0].length; h++) {
 			    if (typeof ws.data[0][h] === "undefined") {
 				return;
 			    }
-			    if (groups[ws.data[0][0].value].fields[ws.data[0][h].value].type == "text") {
-				ds[ws.data[0][h].value] = (typeof ws.data[2] === "undefined" || typeof ws.data[2][h] === "undefined") ? null : ws.data[2][h].value + "";
+			    if (template.groups[l2g[ws.data[0][0].value]].fields[l2f[ws.name][ws.data[0][h].value]].type == "text") {
+				ds[ws.data[0][h].value] = (typeof ws.data[rowIndex] === "undefined" || typeof ws.data[rowIndex][h] === "undefined") ? null : ws.data[rowIndex][h].value + "";
 			    } else {
-				ds[ws.data[0][h].value] = (typeof ws.data[2] === "undefined" || typeof ws.data[2][h] === "undefined") ? null : ws.data[2][h].value;
+				ds[ws.data[0][h].value] = (typeof ws.data[rowIndex] === "undefined" || typeof ws.data[rowIndex][h] === "undefined") ? null : ws.data[rowIndex][h].value;
 			    }
 			}
-			parsedData[ws.data[0][0].value][ws.name].push(ds);	
+
+			// push the dataset into the parent object
+			if (template.groups[l2g[ws.data[0][0].value]].subgroups[ws.name].type == "list") {
+			    parsedData[ws.data[0][0].value][ws.data[rowIndex][0].value][ws.name].push(ds);
+			} else {
+			    parsedData[ws.data[0][0].value][ws.data[rowIndex][0].value][ws.name] = ds;
+			}
 		    }
-		} else {
+		}
+		// this is a toplevel group
+		else {
 		    parsedData[ws.name] = [];
-		    for (var j=2;j<ws.data.length;j++) {
+
+		    // check if the user was mistakenly using the comment field
+		    var rowIndex = 2;
+		    if (template.groups[l2g[ws.name]].fields[l2f[ws.name][ws.data[0][0].value]].description != ws.data[1][0].value) {
+			rowIndex = 1;
+		    }
+
+		    for (var j=rowIndex;j<ws.data.length;j++) {
 			if (ws.data[j].length == 0) {
 			    break;
 			}
@@ -1376,7 +1440,7 @@ The time between submission and a resulting data object in the workspace may tak
 			}
 			parsedData[ws.name].push(dataRow);
 		    }
-		    if (!(template.groups.hasOwnProperty(ws.name) && template.groups[ws.name].hasOwnProperty('type') && template.groups[ws.name].type == 'list')) {
+		    if (!(template.groups.hasOwnProperty(l2g[ws.name]) && template.groups[l2g[ws.name]].hasOwnProperty('type') && template.groups[l2g[ws.name]].type == 'list')) {
 			parsedData[ws.name] = parsedData[ws.name][0];
 		    }
 		} 
