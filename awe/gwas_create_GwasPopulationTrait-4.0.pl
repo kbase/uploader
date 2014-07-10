@@ -18,7 +18,7 @@ use  Bio::KBase::AuthToken;
 use Data::Dumper;
 use Bio::KBase::CDMI::CDMIClient;
 use Bio::KBase::Utilities::ScriptThing;
-my $cdmie = Bio::KBase::CDMI::Client->new("http://bio-data-1.mcs.anl.gov/services/cdmi_api");
+my $cdmie = Bio::KBase::CDMI::Client->new("https://kbase.us/services/cdmi_api");
 
 
 
@@ -216,7 +216,7 @@ my $metadata = $wsc->save_object({id =>"$trait_name", type =>"KBaseGwasData.Gwas
 exit(0);
 
 sub print_usage {
-  &return_error("USAGE: kb_validate_trait.pl population_data_workspace_url population_data_workspace metadata_json_file uploaded_trait_file shockid shockurl token");
+  &return_error("USAGE: gwas_create_GwasPopulationTrait-4.0.pl  population_data_workspace_url population_data_workspace metadata_json_file uploaded_trait_file shockid shockurl token");
 }
 
 sub return_error {
