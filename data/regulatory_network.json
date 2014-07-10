@@ -42,9 +42,9 @@
       "tasks": [
 	  {
 	    "cmd": {
-		  "args": "--regprecisefile @##INPUTFILEFileName## --genome @##GENOME## --ws-name ##WORKSPACE## --ws-url ##WORKSPACEURL## --metadatafile @metadatafile",
+		  "args": "@##INPUTFILEFileName## @##GENOME## -w ##WORKSPACE##",
 		  "description": "save data as regulatory network typed object",
-		  "name": "save_ws_regulatory_network.pl",
+		  "name": "fba-importregulome.pl",
 	  "environ": {"KB_AUTH_TOKEN":""}
 	      },
 	      "dependsOn": [ ],
