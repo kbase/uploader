@@ -1,0 +1,60 @@
+{ "name": "regulatory network",
+  "interface": {
+      "intro": {
+	  "title": "regulatory network submission",
+	  "text": "A regulatory network submission requires a file in RegPrecise format (<a href='http://regprecise.lbl.gov/RegPrecise/ExportServlet?type=gene&genomeId=52' target=_blank>see example</a>)",
+	  "excel": false,
+	  "json": false
+      },
+      "inputs": [
+	  { 
+	      "type": "text",
+	      "label": "Enter genome id",
+	      "help": null,
+	      "default": "",
+	      "data": null,
+	      "isMetadata": false,
+	      "aweVariable": "GENOME"
+	  },
+	  { 
+	      "type": "multiselect",
+	      "filetype": [ "txt" ],
+	      "label": "select RegPrecise text file (e.g., bsub-regulons.txt)",
+	      "help": null,
+	      "default": null,
+	      "data": null,
+	      "isMetadata": false,
+	      "aweVariable": "INPUTFILE"
+	  }
+      ]
+  },
+  "awe": {
+      "tasks": [
+	  {
+	    "cmd": {
+		  "args": "--regprecisefile @##INPUTFILEFileName## --genome @##GENOME## --ws-name ##WORKSPACE## --ws-url ##WORKSPACEURL## --metadatafile @metadatafile",
+		  "description": "save data as regulatory network typed object",
+		  "name": "save_ws_regulatory_network.pl",
+	  "environ": {"KB_AUTH_TOKEN":""}
+	      },
+	      "dependsOn": [ ],
+	      "inputs": {
+		  "##INPUTFILEFileName##": {
+		      "host": "##SHOCK##",
+		      "node": "##INPUTFILE##"
+		  },
+		  "##GENOME##": {
+		      "host": "##SHOCK##",
+		      "node": "##GENOME##"
+		  },
+		  "metadatafile": {
+		      "host": "##SHOCK##",
+		      "node": "##METADATA##"
+		  }
+	      },
+	      "taskid": "0",
+	      "totalwork": 1
+	  }
+      ]
+  }
+}
