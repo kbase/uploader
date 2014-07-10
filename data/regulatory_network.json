@@ -2,7 +2,7 @@
   "interface": {
       "intro": {
 	  "title": "regulatory network submission",
-	  "text": "A regulatory network submission requires a text file (.txt) in RegPrecise format (<a href='http://regprecise.lbl.gov/RegPrecise/ExportServlet?type=gene&genomeId=52' target=_blank>see example</a>)",
+	  "text": "A regulatory network submission requires a text file in RegPrecise format (<a href='http://regprecise.lbl.gov/RegPrecise/ExportServlet?type=gene&genomeId=52' target=_blank>see example</a>)",
 	  "excel": false,
 	  "json": false
       },
@@ -17,7 +17,7 @@
 	      "aweVariable": "GENOME"
 	  },
 	  { 
-	      "type": "multiselect",
+	      "type": "dropdown",
 	      "filetype": [ "txt" ],
 	      "label": "select RegPrecise text file (e.g., bsub-regulons.txt)",
 	      "help": null,
