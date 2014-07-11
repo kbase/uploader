@@ -48,7 +48,8 @@
 	    var realButton = document.createElement('input');
 	    realButton.setAttribute('type', 'file');
 	    realButton.setAttribute('style', 'display: none;');
-	    realButton.addEventListener('change', uploader.fileSelected);
+	    realButton.addEventListener('change', this.fileSelected);
+	    realButton.uploader = this;
 	    this.fileBrowse = realButton;
 	    params.div.appendChild(realButton);
 
@@ -56,8 +57,9 @@
 	    var fakeButton = document.createElement('button');
 	    fakeButton.setAttribute('class', 'btn');
 	    fakeButton.innerHTML = params.buttonTitle;
+	    fakeButton.fb = realButton;
 	    fakeButton.addEventListener('click', function () {
-		uploader.fileBrowse.click();
+		this.fb.click();
 	    });
 	    params.div.appendChild(fakeButton);
 
@@ -95,51 +97,55 @@
 	    
 	    // get the filereader
 	    var fileReader = new FileReader();
+	    fileReader.uploader = this.uploader;
 	    fileReader.onerror = function (error) {
 		console.log(error);
+	    };
+
+	    var ul = this.uploader;
+
+	    var done = function () {
+		ul.progressDiv.innerHTML = '\
+<div class="alert alert-success" style="margin-top: 10px;">\
+<button type="button" class="close" data-dismiss="alert">&times;</button>\
+<strong>Success!</strong> - file \''+ul.fileBrowse.files[0].name+'\' uploaded successfully.\
+</div>';
+		if (typeof ul.callback == "function") {
+		    ul.callback.call(null, { result: "ok",
+					     error: null,
+					     file: { name: ul.fileBrowse.files[0].name,
+						     size: ul.fileBrowse.files[0].size,
+						     type: ul.fileBrowse.files[0].type }
+					   });
+		}
+	    };
+
+	    var error = function (error) {
+		ul.progressDiv.innerHTML = '\
+<div class="alert alert-error" style="margin-top: 10px;">\
+<button type="button" class="close" data-dismiss="alert">&times;</button>\
+<strong>Error:</strong> - file \''+ul.fileBrowse.files[0].name+'\' failed to upload: '+error.statusText+'\
+</div>';
+		if (typeof uploader.callback == "function") {
+		    ul.callback.call(null, { result: "error",
+					     error: error.statusText,
+					     file: { name: ul.fileBrowse.files[0].name,
+						     size: ul.fileBrowse.files[0].size,
+						     type: ul.fileBrowse.files[0].type }
+					   });
+		}
 	    };
 
 	    // handle the file once loaded
 	    fileReader.onload = function(e) {
 		var data = e.target.result;
-		InvocationService(uploader.params.url, uploader.params.auth);
-		put_file(null, file.name, data, "/", uploader.done, uploader.error, uploader.progress);
+		InvocationService(this.uploader.params.url, this.uploader.params.auth);
+		put_file(null, file.name, data, "/", done, error);
 	    };
 
 	    // initiate file reading
 	    fileReader.readAsText(file);
-	},
-	done: function () {
-	    uploader.progressDiv.innerHTML = '\
-<div class="alert alert-success" style="margin-top: 10px;">\
-    <button type="button" class="close" data-dismiss="alert">&times;</button>\
-    <strong>Success!</strong> - file \''+uploader.fileBrowse.files[0].name+'\' uploaded successfully.\
-</div>';
-	    if (typeof uploader.callback == "function") {
-		uploader.callback.call(null, { result: "ok",
-					       error: null,
-					       file: { name: uploader.fileBrowse.files[0].name,
-						       size: uploader.fileBrowse.files[0].size,
-						       type: uploader.fileBrowse.files[0].type }
-					     });
-	    }
-	},
-	error: function (error) {
-	    uploader.progressDiv.innerHTML = '\
-<div class="alert alert-error" style="margin-top: 10px;">\
-    <button type="button" class="close" data-dismiss="alert">&times;</button>\
-    <strong>Error:</strong> - file \''+uploader.fileBrowse.files[0].name+'\' failed to upload: '+error.statusText+'\
-</div>';
-	    if (typeof uploader.callback == "function") {
-		uploader.callback.call(null, { result: "error",
-					       error: error.statusText,
-					       file: { name: uploader.fileBrowse.files[0].name,
-						       size: uploader.fileBrowse.files[0].size,
-						       type: uploader.fileBrowse.files[0].type }
-					     });
-	    }
-
 	}
     }
-    
+
 }).call(this);
