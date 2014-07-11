@@ -1,5 +1,5 @@
 {
-  "name": "GWAS population trait(s)",
+  "name": "GWAS population Variation",
   "interface": {
     "intro": {
       "title": " Gwas population trait data submission",
