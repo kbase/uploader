@@ -219,7 +219,6 @@
 		       "PPI Network",
 		       "co expression network",
 		       "co fitness",
-		       "regulatory network",
 		       "metabolic subsystem",
 		       "multidata int network",
 		       "other network" ];
