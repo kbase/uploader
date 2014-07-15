@@ -16,7 +16,6 @@ use  Bio::KBase::AuthToken;
 use Data::Dumper;
 use Bio::KBase::CDMI::CDMIClient;
 use Bio::KBase::Utilities::ScriptThing;
-my $cdmie = Bio::KBase::CDMI::Client->new("http://bio-data-1.mcs.anl.gov/services/cdmi_api");
 
 
 
@@ -38,8 +37,10 @@ my $s_id                     = $ARGV[6]; #shock_id. should be NA in case of loca
 my $environment              = $ARGV[7]; #local or web
 my $token                    = $ENV{KB_AUTH_TOKEN};
 
-my $to = Bio::KBase::AuthToken->new();
-$token = $to->{token};
+if ($environment eq "local"){
+  my $to = Bio::KBase::AuthToken->new();
+  $token = $to->{token};
+}
 my $wsc = Bio::KBase::workspace::Client->new($ws_url, token=>$token );
 
 
@@ -72,7 +73,6 @@ if ($environment eq "local"){
   $metadata_json = to_json($meta);
 
   $s_id=upload2shock ($uploaded_variation_file);
-#$s_id = "75c7de2b-6c2e-4952-9a2b-a679dcfd8c78";
 }
 
 elsif ($environment eq "web"){
@@ -159,21 +159,15 @@ $ws_doc->{'comment'}= $comment;
 $ws_doc->{"pubmed_id"}=$hash_metadata->{'pubmed_id'}; ;
 
 
-#my $outid = $hash_metadata->{'variation_output_name'}; 
-
-#open OUT, ">document.json" || &return_error("Cannot open document.json for writing");
-#print OUT to_json($ws_doc, { ascii => 1, pretty => 1 });
-#close OUT;
-
 my $metadata = $wsc->save_object({id =>"$outid", type =>"KBaseGwasData.GwasPopulationVariation" , auth => $token,  data => $ws_doc, workspace => $ws1});
-#print to_json($ws_doc);
 
 
 exit(0);
 
+
 #TODO: Fix usage
 sub print_usage {
-  &return_error("USAGE: gwas_validate_population.pl ws_url ws_id metadata data");
+  &return_error("USAGE: gwas_create_population_variation.pl ws_url ws_id newobjectid metadata data shock_url shock_id environment");
 }
 
 sub return_error {
@@ -184,14 +178,22 @@ sub return_error {
 
 
 sub upload2shock {
-  my $fn = shift;
+  my $fn = shift; #file name to be uploaded to shock
 
-#print $token;
+  #upload data to shock and capture node id
   my $cmd = "curl -s -H \"Authorization: OAuth $token\" -X POST -F upload=\@$fn $shock_url/node";
-
   my $out_shock_meta = from_json(`$cmd`);
-  return $out_shock_meta->{data}->{id};
+  my $nodeid = $out_shock_meta->{data}->{id};
 
+  #read acl and owner
+  my $acl = `curl -s -H \"Authorization: OAuth $token\" -X GET $shock_url/node/$nodeid/acl`; 
+  my $hacl=from_json($acl);
+  my $owner=$hacl->{data}->{owner};
 
+  #remove acl
+  my $acl = `curl -s -H \"Authorization: OAuth $token\" -X DELETE  $shock_url/node/$nodeid/acl/read?users=pranjan77`;
+
+  #return nodeid of upload
+  return $nodeid;
 }
 
