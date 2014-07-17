@@ -103,8 +103,6 @@ foreach my $line (@file){
 }
 
 $hash_metadata->{"BasicTraitInfo"}=\@trait_metadata;
-print to_json ($hash_metadata);
-exit;
 $hash_metadata = $hash_metadata->{'BasicTraitInfo'};
 
 my @listOfTraits = @$hash_metadata;

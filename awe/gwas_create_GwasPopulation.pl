@@ -45,8 +45,7 @@ if ($environment eq "local"){
 
     my @datax = split ("\t", $data[0]);
 
-  print $data[0];
-  if (@datax != 5){
+  if (@datax != 6){
     &return_error("Please double check your metadata file and make sure they are tab delimited");
   }
 
@@ -59,7 +58,7 @@ if ($environment eq "local"){
   $meta->{BasicPopulationInfo}->{GwasPopulation_description}= $GwasPopulation_description;
   $meta->{BasicPopulationInfo}->{originator}= $originator;
   $meta->{BasicPopulationInfo}->{pubmed_id}= $pubmed_id;
-  $meta->{BasicPopulationInfo}->{population_object_name}= $population_object_name;
+  $meta->{BasicPopulationInfo}->{population_object_name}= $pop_object_id;
   $meta->{BasicPopulationInfo}->{comments}= $comment;
   $metadata_json = to_json($meta);
 }
@@ -141,7 +140,7 @@ my $metadata = $wsc->save_object({id =>$population_object, type =>"KBaseGwasData
 exit(0);
 
 sub print_usage {
-  &return_error("USAGE: gwas_create_GwasPopulation-2.0.pl ws_url ws_id metadata data environment");
+  &return_error("USAGE: gwas_create_GwasPopulation.pl ws_url ws_id metadata data environment");
 }
 
 sub return_error {

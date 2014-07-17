@@ -1,7 +1,7 @@
 #!/usr/bin/env perl
 
-# this script takes gwas population metadata json file and data text file as input
-# and creates a GwasPopulation type workspace object
+# this script takes gwas population metadata file and and vcf file as input
+# and creates a GwasPopulationVariation type workspace object
 
 use strict;
 #use warnings;
@@ -22,19 +22,18 @@ use Bio::KBase::Utilities::ScriptThing;
 umask 000;
 
 #TODO: Fix usage
-if(@ARGV != 8) {
+if(@ARGV != 7) {
   print_usage();
   exit __LINE__;
 }
 
 my $ws_url                   = $ARGV[0];
 my $ws1                      = $ARGV[1];
-my $outid                    = $ARGV[2];
-my $metadata_file            = $ARGV[3];
-my $uploaded_variation_file  = $ARGV[4]; #file in vcf format
-my $shock_url                = $ARGV[5]; #shock url
-my $s_id                     = $ARGV[6]; #shock_id. should be NA in case of local upload 
-my $environment              = $ARGV[7]; #local or web
+my $metadata_file            = $ARGV[2];
+my $uploaded_variation_file  = $ARGV[3]; #file in vcf format
+my $shock_url                = $ARGV[4]; #shock url
+my $s_id                     = $ARGV[5]; #shock_id. should be NA in case of local upload 
+my $environment              = $ARGV[6]; #local or web
 my $token                    = $ENV{KB_AUTH_TOKEN};
 
 if ($environment eq "local"){
@@ -53,23 +52,27 @@ if ($environment eq "local"){
 
     my @datax = split ("\t", $data[0]);
 
-  if (@datax != 5){
+  if (@datax != 6){
     &return_error("Please double check your metadata file and make sure they are tab delimited");
   }
 
 
-  my ($population_obj_id, $assay, $originator, $pubmed_id, $comment) = @datax;
+  my ($population_obj_id,$variation_obj_id, $assay, $originator, $pubmed_id, $comment) = @datax;
   chomp($comment);
 
   my $meta = {};
   $population_obj_id=~s/\s*$//;
   $population_obj_id=~s/^\s*//;
+  $variation_obj_id=~s/\s*$//;
+  $variation_obj_id=~s/^\s*//;
+
 
   $meta->{BasicPopulationVariationInfo}->{GwasPopulation_obj_id}= $population_obj_id;
   $meta->{BasicPopulationVariationInfo}->{assay}= $assay;
   $meta->{BasicPopulationVariationInfo}->{originator}= $originator;
   $meta->{BasicPopulationVariationInfo}->{pubmed_id}= $pubmed_id;
   $meta->{BasicPopulationVariationInfo}->{comments}= $comment;
+  $meta->{BasicPopulationVariationInfo}->{variation_obj_id}= $variation_obj_id;
   $metadata_json = to_json($meta);
 
   $s_id=upload2shock ($uploaded_variation_file);
@@ -126,7 +129,7 @@ my $length=@obs_units1;
 #TODO:Fix registering of the observation units
 my @obs_units = ();
 foreach my $line (@obs_units1){
-  my @data = ($line, 'kb|..');
+  my @data = ($line, "kb-$line");
   push (@obs_units, \@data);
 }
 
@@ -158,6 +161,10 @@ $comment = "NA" if (!$comment);
 $ws_doc->{'comment'}= $comment;
 $ws_doc->{"pubmed_id"}=$hash_metadata->{'pubmed_id'}; ;
 
+my $outid = $hash_metadata->{variation_obj_id};
+$outid=~s/\s*$//;
+$outid=~s/^\s*//;
+
 
 my $metadata = $wsc->save_object({id =>"$outid", type =>"KBaseGwasData.GwasPopulationVariation" , auth => $token,  data => $ws_doc, workspace => $ws1});
 
@@ -167,7 +174,7 @@ exit(0);
 
 #TODO: Fix usage
 sub print_usage {
-  &return_error("USAGE: gwas_create_population_variation.pl ws_url ws_id newobjectid metadata data shock_url shock_id environment");
+  &return_error("USAGE: gwas_create_population_variation.pl ws_url ws_id  metadata data shock_url shock_id environment");
 }
 
 sub return_error {
@@ -191,7 +198,7 @@ sub upload2shock {
   my $owner=$hacl->{data}->{owner};
 
   #remove acl
-  my $acl = `curl -s -H \"Authorization: OAuth $token\" -X DELETE  $shock_url/node/$nodeid/acl/read?users=pranjan77`;
+  my $acl = `curl -s -H \"Authorization: OAuth $token\" -X DELETE  $shock_url/node/$nodeid/acl/read?users=$owner`;
 
   #return nodeid of upload
   return $nodeid;
