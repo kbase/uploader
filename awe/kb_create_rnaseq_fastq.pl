@@ -1,4 +1,3 @@
-#!/usr/bin/env perl 
 
 # this script validates a file type and generates a workspace
 # object document for uploading into a workspace.

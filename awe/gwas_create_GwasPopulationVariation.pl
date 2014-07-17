@@ -1,4 +1,3 @@
-#!/usr/bin/env perl
 
 # this script takes gwas population metadata file and and vcf file as input
 # and creates a GwasPopulationVariation type workspace object

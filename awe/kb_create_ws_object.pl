@@ -1,4 +1,3 @@
-#!/usr/bin/env perl 
 
 # this script creates a workspace object
 use strict;

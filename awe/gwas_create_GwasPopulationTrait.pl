@@ -1,4 +1,4 @@
-#!/usr/bin/env perl
+
 # this script takes gwas population metadata json file and data text file as input
 # and creates a GwasPopulation type workspace object
 
