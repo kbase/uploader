@@ -1,9 +1,9 @@
 var RetinaConfig = {
     "shock": "https://kbase.us/services/shock-api/",
     "awe": { "url": "http://140.221.84.148:8000",
-	     "pipeline": "kb-upload",
+	     "pipeline": "kbase_upload",
 	     "project": "data-importer",
-	     "clientgroups": "kb_upload"
+	     "clientgroups": "kbase"
 	   },
     "workspace": "https://kbase.us/services/ws/",
     "authURL": "https://kbase.us/services/authorization/Sessions/Login/",
