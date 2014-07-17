@@ -3,7 +3,7 @@
   "interface": {
     "intro": {
       "title": " Gwas population data upload",
-      "text": "Trait data submission requires a text file with details of individuals and filled out metadata Excel spreadsheet. The upload requires that the KBase Genome ID field in the metadata file is filled in correctly with an existing KBase Genome ID (eg. kb|g.3899).",
+      "text": "Population data submission requires a text file with details of individuals and filled out metadata Excel spreadsheet. The upload requires that the KBase Genome ID field in the metadata file is filled in correctly with an existing KBase Genome ID (eg. kb|g.3899).",
       "excel": true,
       "json": false
     },
@@ -40,8 +40,8 @@
       {
         "cmd": {
           "args": "##WORKSPACEURL## ##WORKSPACE## @md_file @##INPUTFILEFileName## web",
-          "description": "validate Trait data",
-          "name": "gwas_create_GwasPopulation-2.0.pl",
+          "description": "validate Population data",
+          "name": "gwas_create_GwasPopulation.pl",
 	  "environ": {"KB_AUTH_TOKEN":""}
         },
 
