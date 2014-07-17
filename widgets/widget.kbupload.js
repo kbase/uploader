@@ -790,7 +790,7 @@ The time between submission and a resulting data object in the workspace may tak
 		console.log( "error" );
 		console.log(jqXHR);
 	    },
-	    headers: { "Datatoken": widget.token },
+	    headers: { "Authorization": widget.token },
 	    type: "POST"
 	});
     };
