@@ -1,7 +1,4 @@
 #!/usr/bin/env perl
-
-#!/usr/bin/env perl
-
 # this script takes gwas population metadata json file and data text file as input
 # and creates a GwasPopulation type workspace object
 
@@ -106,8 +103,6 @@ foreach my $line (@file){
 }
 
 $hash_metadata->{"BasicTraitInfo"}=\@trait_metadata;
-print to_json ($hash_metadata);
-exit;
 $hash_metadata = $hash_metadata->{'BasicTraitInfo'};
 
 my @listOfTraits = @$hash_metadata;
