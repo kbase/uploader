@@ -480,7 +480,8 @@ The time between submission and a resulting data object in the workspace may tak
 
 	button.parentNode.parentNode.parentNode.removeChild(button.parentNode.parentNode);
 	
-	jQuery.ajax(RetinaConfig.awe.url+"/job/"+id, { method: "DELETE" });
+	jQuery.ajax(RetinaConfig.awe.url+"/job/"+id, { headers: { "Authorization": "OAuth "+widget.token,
+								  "Datatoken": widget.token }, method: "DELETE" });
     };
 
     // show additional information and action buttons for a selected file
@@ -787,7 +788,8 @@ The time between submission and a resulting data object in the workspace may tak
 		} else {
 		
 		    // the submission succeeded, query the current status and feed back to the user
-		    jQuery.ajax(RetinaConfig.awe.url+"/job/"+data.data.id, { success: function(data) {
+		    jQuery.ajax(RetinaConfig.awe.url+"/job/"+data.data.id, { headers: { "Authorization": "OAuth "+widget.token,
+		       "Datatoken": widget.token }, success: function(data) {
 			alert('Your submission is complete. The current status is '+data.data.state);
 			Retina.WidgetInstances.kbupload[1].updateInbox();
 		    }});
