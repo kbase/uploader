@@ -363,7 +363,7 @@ The time between submission and a resulting data object in the workspace may tak
 		    if (iT.inputs[i].data) {
 			for (var h=0; h<iT.inputs[i].data.length; h++) {
 			    var selected = "";
-			    if (h == iT.inputs[i]["default"]) {
+			    if (iT.inputs[i].data[h].label == iT.inputs[i]["default"]) {
 				selected = "selected ";
 			    }
 			    html += "<option "+selected+" value='"+iT.inputs[i].data[h].value+"'>"+iT.inputs[i].data[h].label+"</option>";
@@ -431,9 +431,17 @@ The time between submission and a resulting data object in the workspace may tak
     widget.showAWEResult = function (data) {
 	var widget = Retina.WidgetInstances.kbupload[1];
 
+	if (! data) {
+	    // get the pipeline status information from AWE and call the showAWEResult function
+	    jQuery.get(RetinaConfig.awe.url+"/job?query&info.user="+widget.user+"&info.project=data-importer", function (data) {
+		Retina.WidgetInstances.kbupload[1].showAWEResult(data);
+	    });
+	    return;
+	}
+
 	var target = document.getElementById('pipelineSection');
 
-	var html = "<legend>Submission Status</legend>";
+	var html = "<legend>Submission Status</legend><button class='btn btn-mini' onclick='Retina.WidgetInstances.kbupload[1].showAWEResult();'><i class='icon icon-refresh'></i></button>";
 	
 	var subs = [];
 	for (var i=0;i<data.data.length;i++) {
@@ -775,6 +783,7 @@ The time between submission and a resulting data object in the workspace may tak
 		// check if there were submission errors
 		if (data.hasOwnProperty('error') && data.error && data.error.length) {
 		    alert('Your submission failed');
+		    console.log(data);
 		} else {
 		
 		    // the submission succeeded, query the current status and feed back to the user
