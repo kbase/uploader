@@ -433,9 +433,14 @@ The time between submission and a resulting data object in the workspace may tak
 
 	if (! data) {
 	    // get the pipeline status information from AWE and call the showAWEResult function
-	    jQuery.get(RetinaConfig.awe.url+"/job?query&info.user="+widget.user+"&info.project=data-importer", function (data) {
-		Retina.WidgetInstances.kbupload[1].showAWEResult(data);
-	    });
+	    jQuery.ajax(RetinaConfig.awe.url+"/job?query&info.user="+widget.user+"&info.project=data-importer", 
+			{ 
+			    success: function (data) {
+				Retina.WidgetInstances.kbupload[1].showAWEResult(data);
+			    },
+			    headers: { "Authorization": "OAuth "+Retina.WidgetInstances.kbupload[1].token,
+				       "Datatoken": Retina.WidgetInstances.kbupload[1].token }
+			});
 	    return;
 	}
 
@@ -480,8 +485,9 @@ The time between submission and a resulting data object in the workspace may tak
 
 	button.parentNode.parentNode.parentNode.removeChild(button.parentNode.parentNode);
 	
-	jQuery.ajax(RetinaConfig.awe.url+"/job/"+id, { headers: { "Authorization": "OAuth "+widget.token,
-								  "Datatoken": widget.token }, method: "DELETE" });
+	jQuery.ajax(RetinaConfig.awe.url+"/job/"+id, { headers: { "Authorization": "OAuth "+Retina.WidgetInstances.kbupload[1].token,
+								  "Datatoken": Retina.WidgetInstances.kbupload[1].token },
+						       method: "DELETE" });
     };
 
     // show additional information and action buttons for a selected file
@@ -788,11 +794,12 @@ The time between submission and a resulting data object in the workspace may tak
 		} else {
 		
 		    // the submission succeeded, query the current status and feed back to the user
-		    jQuery.ajax(RetinaConfig.awe.url+"/job/"+data.data.id, { headers: { "Authorization": "OAuth "+widget.token,
-		       "Datatoken": widget.token }, success: function(data) {
-			alert('Your submission is complete. The current status is '+data.data.state);
-			Retina.WidgetInstances.kbupload[1].updateInbox();
-		    }});
+		    jQuery.ajax(RetinaConfig.awe.url+"/job/"+data.data.id, { headers: { "Authorization": "OAuth "+Retina.WidgetInstances.kbupload[1].token,
+											"Datatoken": Retina.WidgetInstances.kbupload[1].token },
+									     success: function(data) {
+										 alert('Your submission is complete. The current status is '+data.data.state);
+										 Retina.WidgetInstances.kbupload[1].updateInbox();
+									     }});
 		}
 	    },
 	    error: function(jqXHR, error){
@@ -930,8 +937,12 @@ The time between submission and a resulting data object in the workspace may tak
 	SHOCK.get_all_nodes(Retina.WidgetInstances.kbupload[1].showShockResult,"?query&limit=9999&type=inbox&user="+Retina.WidgetInstances.kbupload[1].user);
 	
 	// get the pipeline status information from AWE and call the showAWEResult function
-	jQuery.get(RetinaConfig.awe.url+"/job?query&info.user="+widget.user+"&info.project=data-importer", function (data) {
-	    Retina.WidgetInstances.kbupload[1].showAWEResult(data);
+	jQuery.ajax(RetinaConfig.awe.url+"/job?query&info.user="+widget.user+"&info.project=data-importer", {
+	    success: function (data) {
+		Retina.WidgetInstances.kbupload[1].showAWEResult(data);
+	    },
+	    headers: { "Authorization": "OAuth "+Retina.WidgetInstances.kbupload[1].token,
+		       "Datatoken": Retina.WidgetInstances.kbupload[1].token }
 	});
     };
 
