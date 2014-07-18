@@ -10,7 +10,7 @@
 	  {
 	      "type": "text",
 	      "filetype": null,
-	      "label": "sequence name",
+	      "label": "file type",
 	      "help": null,
 	      "default": "fasta",
 	      "data": [ { "value": "fasta", "label": "sff" },
