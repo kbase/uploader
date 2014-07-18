@@ -441,7 +441,7 @@ The time between submission and a resulting data object in the workspace may tak
 
 	var target = document.getElementById('pipelineSection');
 
-	var html = "<legend>Submission Status<button title='refresh' class='btn btn-mini' onclick='Retina.WidgetInstances.kbupload[1].showAWEResult();'><i class='icon icon-refresh pull-right'></i></button></legend>";
+	var html = "<legend>Submission Status<button title='refresh' class='btn btn-mini pull-right' onclick='Retina.WidgetInstances.kbupload[1].showAWEResult();'><i class='icon icon-refresh'></i></button></legend>";
 	
 	var subs = [];
 	for (var i=0;i<data.data.length;i++) {
