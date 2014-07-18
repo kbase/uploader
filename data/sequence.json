@@ -1,0 +1,81 @@
+{ "name": "Sequence",
+  "interface": {
+      "intro": {
+	  "title": "sequence file",
+	  "text": "A sequence file to be used in the workspace.",
+	  "excel": false,
+	  "json": false
+      },
+      "inputs": [
+	  {
+	      "type": "text",
+	      "filetype": null,
+	      "label": "sequence name",
+	      "help": null,
+	      "default": "fasta",
+	      "data": [ { "value": "fasta", "label": "sff" },
+			{ "value": "fna", "label": "faa" },
+			{ "value": "fna", "label": "fas" },
+			{ "value": "fna", "label": "fasta" },
+			{ "value": "fna", "label": "fastq" },
+			{ "value": "fna", "label": "fq" },
+			{ "value": "fna", "label": "fna" } ],
+	      "isMetadata": false,
+	      "aweVariable": "FILETYPE" },
+	  { 
+	      "type": "dropdown",
+	      "filetype": [ "sff", "faa", "fas", "fasta", "fastq", "fq", "fna" ],
+	      "label": "select sequence file",
+	      "help": null,
+	      "default": null,
+	      "data": null,
+	      "isMetadata": false,
+	      "aweVariable": "INPUTFILE" }
+      ]
+  },
+  "awe": {
+      "tasks": [
+	  {
+	      "cmd": {
+		  "args": "##FILETYPE## @##INPUTFILEFileName## ##INPUTFILE## ##SHOCK##/##INPUTFILE##",
+		  "description": "validate sequence and generate the workspace document for upload to the workspace",
+                  "name": "kb_create_sequence.pl",
+	  "environ": {"KB_AUTH_TOKEN":""}
+	      },
+	      "dependsOn": [],
+	      "inputs": {
+		  "##INPUTFILEFileName##": {
+		      "host": "##SHOCK##",
+		      "node": "##INPUTFILE##"
+		  }
+              },
+              "outputs": {
+                  "document.json": {
+		      "host": "##SHOCK##",
+		      "node": "-"
+		  }
+	      },
+	      "taskid": "0",
+	      "totalwork": 1
+	  },
+	  {
+	      "cmd": {
+		  "args": "-type=Communities.DataHandle.SequenceFile -id=##INPUTFILEFileName## -data=@document.json -workspace=##WORKSPACE##",
+		  "description": "create workspace object",
+		  "name": "kb_create_ws_object.pl",
+	  "environ": {"KB_AUTH_TOKEN":""}
+	      },
+	      "dependsOn": [ "0" ],
+              "inputs": {
+                  "document.json": {
+                      "host": "##SHOCK##",
+                      "node": "-",
+                      "origin": "0"
+                  }
+              },
+	      "taskid": "1",
+	      "totalwork": 1
+	  }
+      ]
+  }
+}
