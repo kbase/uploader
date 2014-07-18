@@ -1348,6 +1348,10 @@ The time between submission and a resulting data object in the workspace may tak
 	    // get the metadata template for this type
 	    var template = Retina.WidgetInstances.kbupload[1].templates[type].metadata;
 
+	    if (! template) {
+		return;
+	    }
+
 	    // store the result data
     	    var parsedData = {};
 
