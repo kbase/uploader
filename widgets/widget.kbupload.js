@@ -773,6 +773,7 @@ The time between submission and a resulting data object in the workspace may tak
 		aweString = aweString.replace(new RegExp("\#\#" + i + "\#\#", "g"), replacements[i]);
 	    }
 	}
+	aweString = aweString.replace(new RegExp("\#\#TOKEN\#\#", "g"), widget.token);
 	aweTemplate = JSON.parse(aweString);
 
 	// perform the submission
