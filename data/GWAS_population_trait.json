@@ -42,7 +42,7 @@
           "args": "##WORKSPACEURL## ##WORKSPACE## @md_file @##INPUTFILEFileName## web",
           "description": "validate Trait data",
           "name": "gwas_create_GwasPopulationTrait.pl",
-	  "environ": {private:{"KB_AUTH_TOKEN":"##TOKEN##"}}
+	  "environ": {"private":{"KB_AUTH_TOKEN":"##TOKEN##"}}
         },
 
          "dependsOn": [],

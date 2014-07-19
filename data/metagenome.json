@@ -45,7 +45,7 @@
 		  "args": "##FILETYPE## @##INPUTFILEFileName## ##INPUTFILE## ##SHOCK##/##INPUTFILE##",
 		  "description": "validate sequence and generate the workspace document for upload to the workspace",
                   "name": "kb_create_mgm_ws_doc.pl",
-	  "environ": {private:{"KB_AUTH_TOKEN":"##TOKEN##"}}
+	  "environ": {"private":{"KB_AUTH_TOKEN":"##TOKEN##"}}
 	      },
 	      "dependsOn": [],
 	      "inputs": {
@@ -68,7 +68,7 @@
 		  "args": "-type=Communities.DataHandle-1.0 -id=##INPUTFILEFileName## -data=@document.json -workspace=##WORKSPACE##",
 		  "description": "create workspace object",
 		  "name": "kb_create_ws_object.pl",
-	  "environ": {private:{"KB_AUTH_TOKEN":"##TOKEN##"}}
+	  "environ": {"private":{"KB_AUTH_TOKEN":"##TOKEN##"}}
 	      },
 	      "dependsOn": [ "0" ],
               "inputs": {
