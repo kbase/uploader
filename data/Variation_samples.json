@@ -47,7 +47,7 @@
 	    "cmd": {
 		  "args": "##FILETYPE## @##INPUTFILEFileName## @md_file ##INPUTFILE## ##SHOCK##/##INPUTFILE##",
 		  "description": "validate sequence and generate the workspace document for upload to the workspace",
-		  "name": "kb_create_variation_fastq.pl",
+		  "name": "kb_create_variation_fastq",
 	  "environ": {"KB_AUTH_TOKEN":""}
 	      },
 	      "dependsOn":[],
@@ -74,7 +74,7 @@
 		"cmd":{ 
 			"args": "-type=KBaseGwasData.VariationSample -id=##INPUTFILEFileName## -data=@document.json -workspace=##WORKSPACE##",
                 	"description": "create workspace object",
-                	"name": "kb_create_ws_object.pl",
+                	"name": "kb_create_ws_object",
 	  "environ": {"KB_AUTH_TOKEN":""}	    
 	      	      },
 	       "dependsOn": [ "0" ],

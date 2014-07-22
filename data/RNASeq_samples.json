@@ -74,7 +74,7 @@
 		"cmd":{ 
 			"args": "-type=KBaseExpression.RNASeqSample -id=##INPUTFILEFileName## -data=@document.json -workspace=##WORKSPACE##",
                 	"description": "create workspace object",
-                	"name": "kb_create_ws_object.pl",
+                	"name": "kb_create_ws_object",
 	  "environ": {"KB_AUTH_TOKEN":""}	    
 	      	      },
 	       "dependsOn": [ "0" ],

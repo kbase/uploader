@@ -35,7 +35,7 @@
 	    "cmd": {
 		  "args": "--fastafile @##INPUTFILEFileName## --ws-name ##WORKSPACE## --metadatafile @metadatafile --ws-url ##WORKSPACEURL##",
 		  "description": "save data as genome typed object",
-		  "name": "save_ws_genome.pl",
+		  "name": "save_ws_genome",
 	  "environ": {"KB_AUTH_TOKEN":""}
 	      },
 	      "dependsOn": [ ],

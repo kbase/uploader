@@ -34,7 +34,7 @@
 	    "cmd": {
 		  "args": "@##INPUTFILEFileName## @##GENOME## -w ##WORKSPACE##",
 		  "description": "save data as regulatory network typed object",
-		  "name": "fba-importregulome.pl",
+		  "name": "fba-importregulome",
 	  "environ": {"KB_AUTH_TOKEN":""}
 	      },
 	      "dependsOn": [ ],

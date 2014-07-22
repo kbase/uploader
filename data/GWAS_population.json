@@ -41,7 +41,7 @@
         "cmd": {
           "args": "##WORKSPACEURL## ##WORKSPACE## @md_file @##INPUTFILEFileName## web",
           "description": "validate Population data",
-          "name": "gwas_create_GwasPopulation.pl",
+          "name": "gwas_create_GwasPopulation",
 	  "environ": {"KB_AUTH_TOKEN":""}
         },
 
