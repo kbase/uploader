@@ -455,6 +455,15 @@ The time between submission and a resulting data object in the workspace may tak
 		if (item.state != "deleted") {
 		    var currtask = item.tasks[item.tasks.length - item.remaintasks];
 		    var numtasks = item.tasks.length;
+		    if (item.hasOwnProperty('lastfailed') && item.lastfailed.length) {
+			jQuery.ajax(RetinaConfig.awe.url+"/work/"+item.lastfailed+"?report=stderr", 
+			{ 
+			    success: function (data) {
+				console.log(data.data);
+			    },
+			    headers: { "Authorization": "OAuth "+Retina.WidgetInstances.kbupload[1].token }
+			});
+		    }
 		    subs.push([ item.info.name, Retina.WidgetInstances.kbupload[1].dots(item.tasks), item.info.submittime, "-", "<button type='button' class='btn btn-mini btn-danger' onclick='if(confirm(\"Really delete this job? This cannot be undone!\")){Retina.WidgetInstances.kbupload[1].deleteJob(this, \""+item.id+"\");}'>delete</button>"]);
 		}
 	    } else {
