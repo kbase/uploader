@@ -33,7 +33,7 @@ if (! grep( /^$type$/, @array)) {
 # Fixable ASCII files return:   file_type = 'ASCII text', err_msg = "", fix_str = "command to fix file"
 # Bad files return:             file_type = bad file type, err_msg = error message, fix_str = ""
 
-my ($file_type, $err_msg, $fix_str) = &verify_file_type($filename);
+my ($file_type, $err_msg, $fix_str) = &verify_file_type($name);
 if ($err_msg ne "") {
     &return_error("$err_msg");
 } elsif($fix_str ne "") {
@@ -41,7 +41,7 @@ if ($err_msg ne "") {
 }
 
 my $line = "";
-open IN, "<$filename" || &return_error("Could not open file '$filename' for reading.");
+open IN, "<$name" || &return_error("Could not open file '$name' for reading.");
 while ( defined($line = <IN>) and chomp $line and $line =~ /^\s*$/ ) {
     # ignore blank lines at beginning of file
 }
