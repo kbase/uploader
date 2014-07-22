@@ -33,12 +33,12 @@ if (! grep( /^$type$/, @array)) {
 # Fixable ASCII files return:   file_type = 'ASCII text', err_msg = "", fix_str = "command to fix file"
 # Bad files return:             file_type = bad file type, err_msg = error message, fix_str = ""
 
-my ($file_type, $err_msg, $fix_str) = &verify_file_type($name);
-if ($err_msg ne "") {
-    &return_error("$err_msg");
-} elsif($fix_str ne "") {
-    &return_error("ERROR: File is not usable. Try running the following to fix this file: $fix_str");
-}
+# my ($file_type, $err_msg, $fix_str) = &verify_file_type($name);
+# if ($err_msg ne "") {
+#     &return_error("$err_msg");
+# } elsif($fix_str ne "") {
+#     &return_error("ERROR: File is not usable. Try running the following to fix this file: $fix_str");
+# }
 
 my $line = "";
 open IN, "<$name" || &return_error("Could not open file '$name' for reading.");
