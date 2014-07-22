@@ -737,6 +737,7 @@ The time between submission and a resulting data object in the workspace may tak
 	    if (interfaceTemplate.inputs[i].hasOwnProperty('aweVariable') && interfaceTemplate.inputs[i].aweVariable) {
 		var item = document.getElementById('submissionField'+interfaceTemplate.inputs[i].aweVariable);
 		if (interfaceTemplate.inputs[i].type == "dropdown") {
+		    replacements[interfaceTemplate.inputs[i].aweVariable+"FileName"] = item.options[item.selectedIndex].text;
 		    replacements[interfaceTemplate.inputs[i].aweVariable] = item.options[item.selectedIndex].value;
 		} else if (interfaceTemplate.inputs[i].type == "radio") {
 		    var items = document.getElementsByName('submissionField'+interfaceTemplate.inputs[i].aweVariable);
