@@ -81,7 +81,6 @@
       "BasicPopulationInfo": {
         "name": "BasicPopulationInfo",
         "label": "BasicPopulationInfo",
-        "type": "list",
         "description": "Basic Population information",
         "mandatory": true,
         "toplevel": true,
