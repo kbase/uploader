@@ -136,7 +136,7 @@
 
 	    // get the selected file name and make sure it matches one of the allowed file endings
 	    var fn = widget.fu.files[widget.currentFile].name;
-	    var allowed = true;//false;
+	    var allowed = false;
 	    for (var i=0;i<widget.allowedFileEndings.length; i++) {
 		if (fn.match(new RegExp("\."+widget.allowedFileEndings[i]+"$"))) {
 		    allowed = true;
