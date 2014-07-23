@@ -1153,6 +1153,7 @@ The time between submission and a resulting data object in the workspace may tak
 	for (var i=0;i<templateNames.length;i++) {
 	    promises.push( jQuery.ajax("data/"+templateNames[i]+".json", { method: "GET",
 									   dataType: "text",
+									   cache: false,
 									   beforeSend: function( xhr ) {
 									       xhr.tname = templateNames[i];
 									   },
