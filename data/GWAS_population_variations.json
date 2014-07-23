@@ -23,8 +23,7 @@
       {	
         "type": "multiselect",
         "filetype": [
-          "txt",
-          "xls"
+          "vcf"
         ],
         "label": "select Variation file in vcf format",
         "help": null,
