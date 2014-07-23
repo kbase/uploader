@@ -40,11 +40,11 @@ if (! grep( /^$type$/, @array)) {
 #     &return_error("ERROR: File is not usable. Try running the following to fix this file: $fix_str");
 # }
 
-my $line = "";
-open IN, "<$name" || &return_error("Could not open file '$name' for reading.");
-while ( defined($line = <IN>) and chomp $line and $line =~ /^\s*$/ ) {
-    # ignore blank lines at beginning of file
-}
+# my $line = "";
+# open IN, "<$name" || &return_error("Could not open file '$name' for reading.");
+# while ( defined($line = <IN>) and chomp $line and $line =~ /^\s*$/ ) {
+#     # ignore blank lines at beginning of file
+# }
 
 my $ws_doc;
 $ws_doc->{name} = $name;
