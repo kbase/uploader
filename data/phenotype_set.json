@@ -1,0 +1,73 @@
+{ "name": "phenotype set from text file",
+  "interface": {
+      "intro": {
+	  "title": "phenotype set from text file submission",
+	  "text": "phenotype set upload requires a text file (with '.txt' extension). <br>The first line of the file defines the names of the fields in the file.  The <br>required fields are 'media', 'mediaws', and 'growth'.  Optional fields are <br>'geneko' and 'addtlCpd'.  The 'media' field is the ID of a Media object. <br>The 'mediaws' field is the ID of the workspace with the Media object.  The <br>'growth' field is either 0 to indicate no growth or 1 to indicate growth on <br>the specified media.  The 'geneko' field is a semicolon delimited list of <br>the IDs for gene knockouts.  The 'addtlCpd' field is a semicolon delimited <br>list of the IDs of compounds added to the media before measuring the <br>phenotype.  The fields can be in any order and must be delimited by tabs.<br><br>The following is an example of the data file:<br><br>media     mediaws growth  geneko<br>Carbon-D-Glucose  KBaseMedia      1       fig|83333.1.peg.1<br>Carbon-D-Glucose  KBaseMedia      0       fig|83333.1.peg.2<br>Carbon-D-Glucose  KbaseMedia      0       fig|83333.1.peg.3",
+	  "excel": false,
+	  "json": false
+      },
+      "inputs": [
+	  { 
+	      "type": "text",
+	      "label": "Enter genome id",
+	      "help": null,
+	      "default": "",
+	      "data": null,
+	      "isMetadata": false,
+	      "aweVariable": "GENOME"
+	  },
+	  { 
+	      "type": "dropdown",
+	      "filetype": [ "txt" ],
+	      "label": "select phenotype set text file",
+	      "help": null,
+	      "default": null,
+	      "data": null,
+	      "isMetadata": false,
+	      "aweVariable": "PSETFILE"
+	  },
+	  { 
+	      "type": "text",
+	      "label": "Enter phenotype set id",
+	      "help": null,
+	      "default": "",
+	      "data": null,
+	      "isMetadata": false,
+	      "aweVariable": "PSETID"
+	  }
+      ]
+  },
+  "awe": {
+      "tasks": [
+	  {
+	    "cmd": {
+		  "args": "@##GENOME## @##PSETFILEFileName## -w ##WORKSPACE## --phenoid @##PSETID##",
+		  "description": "save data as phenotype set typed object",
+		  "name": "fba-importpheno.pl",
+	  "environ": {"KB_AUTH_TOKEN":""}
+	      },
+	      "dependsOn": [ ],
+	      "inputs": {
+		  "##PSETFILEFileName##": {
+		      "host": "##SHOCK##",
+		      "node": "##PSETFILE##"
+		  },
+		  "##MEDIA##": {
+		      "host": "##SHOCK##",
+		      "node": "##PSETID##"
+		  },
+		  "##MEDIA##": {
+		      "host": "##SHOCK##",
+		      "node": "##GENOMEID##"
+		  },
+		  "metadatafile": {
+		      "host": "##SHOCK##",
+		      "node": "##METADATA##"
+		  }
+	      },
+	      "taskid": "0",
+	      "totalwork": 1
+	  }
+      ]
+  }
+}

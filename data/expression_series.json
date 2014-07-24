@@ -1,8 +1,8 @@
-{ "name": "regulatory network",
+{ "name": "gene expression series",
   "interface": {
       "intro": {
-	  "title": "regulatory network submission",
-	  "text": "A regulatory network submission requires a text file (with '.txt' extension) in RegPrecise format (<a href='http://regprecise.lbl.gov/RegPrecise/ExportServlet?type=gene&genomeId=52' target=_blank>see example</a>)",
+	  "title": "gene expression series submission",
+	  "text": "Gene expression series submission requires a text file (with '.txt' extension) in tab separated format. The first row should contain one or more sample names. Subsequent rows should contain a gene id in the first column, followed by values for each sample. Note that the first row has one less entry than subsequent rows.",
 	  "excel": false,
 	  "json": false
       },
@@ -19,7 +19,7 @@
 	  { 
 	      "type": "dropdown",
 	      "filetype": [ "txt" ],
-	      "label": "select RegPrecise text file (e.g., bsub-regulons.txt)",
+	      "label": "select gene expression series text file",
 	      "help": null,
 	      "default": null,
 	      "data": null,
@@ -28,12 +28,12 @@
 	  },
 	  { 
 	      "type": "text",
-	      "label": "Enter regulatory network id",
+	      "label": "Enter series id",
 	      "help": null,
 	      "default": "",
 	      "data": null,
 	      "isMetadata": false,
-	      "aweVariable": "REGULOME"
+	      "aweVariable": "SERIES"
 	  }
       ]
   },
@@ -41,9 +41,9 @@
       "tasks": [
 	  {
 	    "cmd": {
-		  "args": "@##INPUTFILEFileName## @##GENOME## -w ##WORKSPACE## -r ##REGULOME##",
-		  "description": "save data as a regulome typed object",
-		  "name": "fba-importregulome.pl",
+		  "args": "@##INPUTFILEFileName## -g @##GENOME## -w ##WORKSPACE## --series ##SERIES##",
+		  "description": "save data as gene expression series and samples typed objects",
+		  "name": "fba-importexpression.pl",
 	  "environ": {"KB_AUTH_TOKEN":""}
 	      },
 	      "dependsOn": [ ],
@@ -56,9 +56,9 @@
 		      "host": "##SHOCK##",
 		      "node": "##GENOME##"
 		  },
-		  "##REGULOME##": {
+		  "##SERIES##": {
 		      "host": "##SHOCK##",
-		      "node": "##REGULOME##"
+		      "node": "##SERIES##"
 		  },
 		  "metadatafile": {
 		      "host": "##SHOCK##",
