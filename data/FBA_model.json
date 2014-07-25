@@ -62,8 +62,8 @@
 	    "cmd": {
 		  "args": "@##GENOME## @##REACTIONSFILEFileName## @##BIOMASSID## --compoundfile @##COMPOUNDSFILEFileName## -w ##WORKSPACE## -m ##MODELID##",
 		  "description": "save data as FBA model typed object",
-		  "name": "fba-importfbamodel.pl",
-	  "environ": {"KB_AUTH_TOKEN":""}
+		  "name": "fba-importfbamodel",
+	  "environ": {"private":{"KB_AUTH_TOKEN":"##TOKEN##"}}
 	      },
 	      "dependsOn": [ ],
 	      "inputs": {

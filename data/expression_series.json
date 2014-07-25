@@ -43,8 +43,8 @@
 	    "cmd": {
 		  "args": "@##INPUTFILEFileName## -g @##GENOME## -w ##WORKSPACE## --series ##SERIES##",
 		  "description": "save data as gene expression series and samples typed objects",
-		  "name": "fba-importexpression.pl",
-	  "environ": {"KB_AUTH_TOKEN":""}
+		  "name": "fba-importexpression",
+	  "environ": {"private":{"KB_AUTH_TOKEN":"##TOKEN##"}}
 	      },
 	      "dependsOn": [ ],
 	      "inputs": {

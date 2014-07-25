@@ -183,7 +183,7 @@
 											   "token": data.token,
 											   "session": data.kbase_sessionid,
 											   "uid": data.user_id
-											 }), { expires: 7 });
+											 }), { expires: 60, path: '/' });
 			   if (Retina.WidgetInstances.login[index].callback && typeof(Retina.WidgetInstances.login[index].callback) == 'function') {
 			       Retina.WidgetInstances.login[index].callback.call({ 'action': 'login',
 										   'result': 'success',
@@ -196,7 +196,7 @@
 	                   document.getElementById('failure').innerHTML = '<div class="alert alert-error"><button type="button" class="close" data-dismiss="alert">&times;</button><strong>Error:</strong> Login failed.</div>';
 			   jQuery.cookie(Retina.WidgetInstances.login[index].cookiename,
 					 JSON.stringify({ "uname": null,
-							  "token": null }), { expires: 7 });
+							  "token": null }), { expires: 60, path: '/' });
 			   if (Retina.WidgetInstances.login[index].callback && typeof(Retina.WidgetInstances.login[index].callback) == 'function') {
 			       Retina.WidgetInstances.login[index].callback.call({ 'action': 'login',
 										   'result': 'failed',
@@ -213,7 +213,7 @@
 	document.getElementById('login_name_span').style.display = "";
 	document.getElementById('login_name').innerHTML = "";
 	stm.Authentication = null;
-	jQuery.cookie(Retina.WidgetInstances.login[index].cookiename, "");
+	jQuery.removeCookie(Retina.WidgetInstances.login[index].cookiename);
 	if (Retina.WidgetInstances.login[index].callback && typeof(Retina.WidgetInstances.login[index].callback) == 'function') {
 	    Retina.WidgetInstances.login[index].callback.call({ 'action': 'logout'});
 	}

@@ -34,8 +34,8 @@
 	    "cmd": {
 		  "args": "@##MEDIA## @##MEDIAFILEFileName## -w ##WORKSPACE##",
 		  "description": "save data as media typed object",
-		  "name": "fba-addmedia.pl",
-	  "environ": {"KB_AUTH_TOKEN":""}
+		  "name": "fba-addmedia",
+	  "environ": {"private":{"KB_AUTH_TOKEN":"##TOKEN##"}}
 	      },
 	      "dependsOn": [ ],
 	      "inputs": {

@@ -47,8 +47,8 @@
 	    "cmd": {
 		  "args": "##FILETYPE## @##INPUTFILEFileName## @md_file ##INPUTFILE## ##SHOCK##/##INPUTFILE##",
 		  "description": "validate sequence and generate the workspace document for upload to the workspace",
-		  "name": "kb_create_rnaseq_fastq.pl",
-	  "environ": {"KB_AUTH_TOKEN":""}
+		  "name": "kb_create_rnaseq_fastq",
+	  "environ": {"private":{"KB_AUTH_TOKEN":"##TOKEN##"}}
 	      },
 	      "dependsOn":[],
 	      "inputs": {
@@ -74,8 +74,8 @@
 		"cmd":{ 
 			"args": "-type=KBaseExpression.RNASeqSample -id=##INPUTFILEFileName## -data=@document.json -workspace=##WORKSPACE##",
                 	"description": "create workspace object",
-                	"name": "kb_create_ws_object.pl",
-	  "environ": {"KB_AUTH_TOKEN":""}	    
+                	"name": "kb_create_ws_object",
+	  "environ": {"private":{"KB_AUTH_TOKEN":"##TOKEN##"}}	    
 	      	      },
 	       "dependsOn": [ "0" ],
 	       "inputs":{

@@ -121,10 +121,10 @@
 		    // this is the name of the AWE script called
 		    // this script must exist on the AWE client machine. If you create your own AWE scripts,
 		    // they should be placed in the awe directory in the uploader repository
-		    "name": "myAWEscript.pl",
+		    "name": "myAWEscript",
 
                     // this puts the KBase Authentication token into the environment of the script
-                    "environ": {"KB_AUTH_TOKEN":""}
+                    "environ": {"private":{"KB_AUTH_TOKEN":"##TOKEN##"}}
 		},
 
 		// taskid of the tasks that need to be successfully completed before this task

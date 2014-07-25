@@ -43,8 +43,8 @@
 	    "cmd": {
 		  "args": "@##INPUTFILEFileName## @##GENOME## -w ##WORKSPACE## -r ##REGULOME##",
 		  "description": "save data as a regulome typed object",
-		  "name": "fba-importregulome.pl",
-	  "environ": {"KB_AUTH_TOKEN":""}
+		  "name": "fba-importregulome",
+	  "environ": {"private":{"KB_AUTH_TOKEN":"##TOKEN##"}}
 	      },
 	      "dependsOn": [ ],
 	      "inputs": {

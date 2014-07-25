@@ -136,7 +136,7 @@
 
 	    // get the selected file name and make sure it matches one of the allowed file endings
 	    var fn = widget.fu.files[widget.currentFile].name;
-	    var allowed = true;//false;
+	    var allowed = false;
 	    for (var i=0;i<widget.allowedFileEndings.length; i++) {
 		if (fn.match(new RegExp("\."+widget.allowedFileEndings[i]+"$"))) {
 		    allowed = true;
@@ -363,7 +363,7 @@ The time between submission and a resulting data object in the workspace may tak
 		    if (iT.inputs[i].data) {
 			for (var h=0; h<iT.inputs[i].data.length; h++) {
 			    var selected = "";
-			    if (h == iT.inputs[i]["default"]) {
+			    if (iT.inputs[i].data[h].label == iT.inputs[i]["default"]) {
 				selected = "selected ";
 			    }
 			    html += "<option "+selected+" value='"+iT.inputs[i].data[h].value+"'>"+iT.inputs[i].data[h].label+"</option>";
@@ -431,9 +431,22 @@ The time between submission and a resulting data object in the workspace may tak
     widget.showAWEResult = function (data) {
 	var widget = Retina.WidgetInstances.kbupload[1];
 
+	if (! data) {
+	    // get the pipeline status information from AWE and call the showAWEResult function
+	    jQuery.ajax(RetinaConfig.awe.url+"/job?query&info.user="+widget.user+"&info.project=data-importer", 
+			{ 
+			    success: function (data) {
+				Retina.WidgetInstances.kbupload[1].showAWEResult(data);
+			    },
+			    headers: { "Authorization": "OAuth "+Retina.WidgetInstances.kbupload[1].token,
+				       "Datatoken": Retina.WidgetInstances.kbupload[1].token }
+			});
+	    return;
+	}
+
 	var target = document.getElementById('pipelineSection');
 
-	var html = "<legend>Submission Status</legend>";
+	var html = "<legend>Submission Status<button title='refresh' class='btn btn-mini pull-right' onclick='Retina.WidgetInstances.kbupload[1].showAWEResult();'><i class='icon icon-refresh'></i></button></legend>";
 	
 	var subs = [];
 	for (var i=0;i<data.data.length;i++) {
@@ -442,6 +455,15 @@ The time between submission and a resulting data object in the workspace may tak
 		if (item.state != "deleted") {
 		    var currtask = item.tasks[item.tasks.length - item.remaintasks];
 		    var numtasks = item.tasks.length;
+		    if (item.hasOwnProperty('lastfailed') && item.lastfailed.length) {
+			jQuery.ajax(RetinaConfig.awe.url+"/work/"+item.lastfailed+"?report=stderr", 
+			{ 
+			    success: function (data) {
+				console.log(data.data);
+			    },
+			    headers: { "Authorization": "OAuth "+Retina.WidgetInstances.kbupload[1].token }
+			});
+		    }
 		    subs.push([ item.info.name, Retina.WidgetInstances.kbupload[1].dots(item.tasks), item.info.submittime, "-", "<button type='button' class='btn btn-mini btn-danger' onclick='if(confirm(\"Really delete this job? This cannot be undone!\")){Retina.WidgetInstances.kbupload[1].deleteJob(this, \""+item.id+"\");}'>delete</button>"]);
 		}
 	    } else {
@@ -472,7 +494,9 @@ The time between submission and a resulting data object in the workspace may tak
 
 	button.parentNode.parentNode.parentNode.removeChild(button.parentNode.parentNode);
 	
-	jQuery.ajax(RetinaConfig.awe.url+"/job/"+id, { method: "DELETE" });
+	jQuery.ajax(RetinaConfig.awe.url+"/job/"+id, { headers: { "Authorization": "OAuth "+Retina.WidgetInstances.kbupload[1].token,
+								  "Datatoken": Retina.WidgetInstances.kbupload[1].token },
+						       method: "DELETE" });
     };
 
     // show additional information and action buttons for a selected file
@@ -722,6 +746,7 @@ The time between submission and a resulting data object in the workspace may tak
 	    if (interfaceTemplate.inputs[i].hasOwnProperty('aweVariable') && interfaceTemplate.inputs[i].aweVariable) {
 		var item = document.getElementById('submissionField'+interfaceTemplate.inputs[i].aweVariable);
 		if (interfaceTemplate.inputs[i].type == "dropdown") {
+		    replacements[interfaceTemplate.inputs[i].aweVariable+"FileName"] = item.options[item.selectedIndex].text;
 		    replacements[interfaceTemplate.inputs[i].aweVariable] = item.options[item.selectedIndex].value;
 		} else if (interfaceTemplate.inputs[i].type == "radio") {
 		    var items = document.getElementsByName('submissionField'+interfaceTemplate.inputs[i].aweVariable);
@@ -758,6 +783,7 @@ The time between submission and a resulting data object in the workspace may tak
 		aweString = aweString.replace(new RegExp("\#\#" + i + "\#\#", "g"), replacements[i]);
 	    }
 	}
+	aweString = aweString.replace(new RegExp("\#\#TOKEN\#\#", "g"), widget.token);
 	aweTemplate = JSON.parse(aweString);
 
 	// perform the submission
@@ -775,13 +801,16 @@ The time between submission and a resulting data object in the workspace may tak
 		// check if there were submission errors
 		if (data.hasOwnProperty('error') && data.error && data.error.length) {
 		    alert('Your submission failed');
+		    console.log(data);
 		} else {
 		
 		    // the submission succeeded, query the current status and feed back to the user
-		    jQuery.ajax(RetinaConfig.awe.url+"/job/"+data.data.id, { success: function(data) {
-			alert('Your submission is complete. The current status is '+data.data.state);
-			Retina.WidgetInstances.kbupload[1].updateInbox();
-		    }});
+		    jQuery.ajax(RetinaConfig.awe.url+"/job/"+data.data.id, { headers: { "Authorization": "OAuth "+Retina.WidgetInstances.kbupload[1].token,
+											"Datatoken": Retina.WidgetInstances.kbupload[1].token },
+									     success: function(data) {
+										 alert('Your submission is complete. The current status is '+data.data.state);
+										 Retina.WidgetInstances.kbupload[1].updateInbox();
+									     }});
 		}
 	    },
 	    error: function(jqXHR, error){
@@ -790,7 +819,8 @@ The time between submission and a resulting data object in the workspace may tak
 		console.log( "error" );
 		console.log(jqXHR);
 	    },
-	    headers: { "Datatoken": widget.token },
+	    headers: { "Authorization": "OAuth "+widget.token,
+		       "Datatoken": widget.token },
 	    type: "POST"
 	});
     };
@@ -918,8 +948,12 @@ The time between submission and a resulting data object in the workspace may tak
 	SHOCK.get_all_nodes(Retina.WidgetInstances.kbupload[1].showShockResult,"?query&limit=9999&type=inbox&user="+Retina.WidgetInstances.kbupload[1].user);
 	
 	// get the pipeline status information from AWE and call the showAWEResult function
-	jQuery.get(RetinaConfig.awe.url+"/job?query&info.user="+widget.user+"&info.project=data-importer", function (data) {
-	    Retina.WidgetInstances.kbupload[1].showAWEResult(data);
+	jQuery.ajax(RetinaConfig.awe.url+"/job?query&info.user="+widget.user+"&info.project=data-importer", {
+	    success: function (data) {
+		Retina.WidgetInstances.kbupload[1].showAWEResult(data);
+	    },
+	    headers: { "Authorization": "OAuth "+Retina.WidgetInstances.kbupload[1].token,
+		       "Datatoken": Retina.WidgetInstances.kbupload[1].token }
 	});
     };
 
@@ -1119,6 +1153,7 @@ The time between submission and a resulting data object in the workspace may tak
 	for (var i=0;i<templateNames.length;i++) {
 	    promises.push( jQuery.ajax("data/"+templateNames[i]+".json", { method: "GET",
 									   dataType: "text",
+									   cache: false,
 									   beforeSend: function( xhr ) {
 									       xhr.tname = templateNames[i];
 									   },
@@ -1335,6 +1370,10 @@ The time between submission and a resulting data object in the workspace may tak
 
 	    // get the metadata template for this type
 	    var template = Retina.WidgetInstances.kbupload[1].templates[type].metadata;
+
+	    if (! template) {
+		return;
+	    }
 
 	    // store the result data
     	    var parsedData = {};

@@ -1,9 +1,9 @@
 {
-  "name": "GWAS population trait(s)",
+  "name": "GWAS population",
   "interface": {
     "intro": {
-      "title": " Gwas population trait data submission",
-      "text": "Trait data submission requires a text file with trait values and filled out metadata Excel spreadsheet. The upload requires that the GwasPopulation_obj_id field in the metadata file is filled in correctly with an existing workspace object ID. Each row in the metadata file corresponds to one trait.",
+      "title": " Gwas population data upload",
+      "text": "Population data submission requires a text file with details of individuals and filled out metadata Excel spreadsheet. The upload requires that the KBase Genome ID field in the metadata file is filled in correctly with an existing KBase Genome ID (eg. kb|g.3899).",
       "excel": true,
       "json": false
     },
@@ -13,7 +13,7 @@
         "filetype": [
           "xlsx"
         ],
-        "label": "select GWAS Population Trait metadata file",
+        "label": "select GWAS Population metadata file",
         "help": null,
         "default": null,
         "data": null,
@@ -26,7 +26,7 @@
           "txt",
           "xls"
         ],
-        "label": "select trait file",
+        "label": "select population data file",
         "help": null,
         "default": null,
         "data": null,
@@ -40,8 +40,8 @@
       {
         "cmd": {
           "args": "##WORKSPACEURL## ##WORKSPACE## @md_file @##INPUTFILEFileName## web",
-          "description": "validate Trait data",
-          "name": "gwas_create_GwasPopulationTrait",
+          "description": "validate Population data",
+          "name": "gwas_create_GwasPopulation",
 	  "environ": {"private":{"KB_AUTH_TOKEN":"##TOKEN##"}}
         },
 
@@ -66,9 +66,9 @@
                ]
   },
   "metadata": {
-    "name": "KBaseGwasData.GwasPopulationTraitTemplate",
-    "label": "KBase GWAS Population Trait Template",
-    "description": "Template to specify meta data for loading Trait data to  KBaseGwasData.GwasPopulationTrait typed object in a workspace",
+    "name": "KBaseGwasData.GwasPopulationTemplate",
+    "label": "KBase GWAS Population  Template",
+    "description": "Template to specify meta data for loading Population data to  KBaseGwasData.GwasPopulation typed object in a workspace",
     "cvs": {
       "domain": {
         "Bacteria": true,
@@ -78,19 +78,18 @@
       }
     },
     "groups": {
-      "BasicTraitInfo": {
-        "name": "BasicTraitInfo",
-        "label": "BasicTraitInfo",
-        "type": "list",
-        "description": "basic Trait information",
+      "BasicPopulationInfo": {
+        "name": "BasicPopulationInfo",
+        "label": "BasicPopulationInfo",
+        "description": "Basic Population information",
         "mandatory": true,
         "toplevel": true,
         "subgroups": {},
         "fields": {
-          "trait_name": {
-            "name": "trait_name",
-            "label": "Trait Name",
-            "description": "Simple Trait name (No spaces and only alpha numeric characters)",
+          "kbase_genome_id": {
+            "name": "kbase_genome_id",
+            "label": "KBase Genome ID",
+            "description":"KBase ID of genome associated with the population",
             "type": "text",
             "default": "Unknown",
             "mandatory": "true",
@@ -98,10 +97,10 @@
               "type": "None"
             }
           },
-          "protocol": {
-            "name": "protocol",
-            "label": "Protocol",
-            "description": "Detailed description of protocol used to generate the trait measurements",
+          "GwasPopulation_description": {
+            "name": "GwasPopulation_description",
+            "label": "Gwas Population description",
+            "description": "Detailed description of the population data being uploaded",
             "type": "text",
             "default": "Unknown",
             "mandatory": "true",
@@ -109,25 +108,12 @@
               "type": "none"
             }
           },
-          "trait_ontology_id": {
-            "name": "trait_ontology_id",
-            "label": "Trait ontology id",
-            "description": "Trait ontology information in the following format TO:0000387. Please use http://archive.gramene.org/plant_ontology/ontology_browse.html#to to search for trait ontology terms for the trait data being uploaded",
+          "population_object_name": {
+            "name": "population_object_name",
+            "label": "Population Object name",
+            "description": "Name with only alpha numeric characters and no spaces",
             "type": "text",
             "default": "Unknown",
-            "mandatory": "false",
-            "validation": {
-              "type": "none"
-            }
-          },
-
-
-	 "GwasPopulation_obj_id": {
-            "name": "GwasPopulation_obj_id",
-            "label": "Gwas Population Object id",
-            "description": "Uploading trait data is only supported for GWAS populations that are already in KBase and added to user workspace. Use KBase search to identify the list of GWAS populations currently supported. This field will be validated before the trait object can be created.",
-            "type": "text",
-            "default": "",
             "mandatory": "true",
             "validation": {
               "type": "none"
@@ -155,10 +141,10 @@
               "type": "none"
             }
           },
-           "unit_of_measure": {
-            "name": "unit_of_measure",
-            "label": "Unit of Measurement",
-            "description": "Unit of measurement of trait eg. mean, ratio etc.",
+           "comments": {
+            "name": "comments",
+            "label": "Comments",
+            "description": "Additional Comments",
             "type": "text",
             "default": "Unknown",
             "mandatory": "false",
