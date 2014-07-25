@@ -54,8 +54,7 @@ build-ui:
 #	cp -R validator/* $(SERVICE_DIR)/webroot/
 	cp -R * $(SERVICE_DIR)/webroot/
 
-deploy-client: 
-	@echo "no client"
+deploy-client: deploy-scripts
 
 build-docs:
 	pod2html --infile=scripts/uploader.pl --outfile=docs/uploader.html --title="KBase Uploader Command Line Interface"
