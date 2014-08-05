@@ -1306,7 +1306,7 @@ The time between submission and a resulting data object in the workspace may tak
 	// there is no template, so the validation failed basic formatting checks
 	else {
 	    status.className = "alert alert-error";
-	    status.innerHTML = "<b>Your metadata did not validate</b><br>Your metdata has an invalid format.<br>Please use the template downloadable via the 'download Excel Template' button.";
+	    status.innerHTML = "<b>Your metadata did not validate</b><br>Your metadata has an invalid format.<br>Please use the template downloadable via the 'download Excel Template' button.";
 	    Retina.WidgetInstances.kbupload[1].metaDataValidated = false;
 	}
     };
