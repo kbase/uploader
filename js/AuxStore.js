@@ -262,7 +262,7 @@
 	    
 	    // if this is a chunked upload, check if it needs to be resumed
 	    var blobSlice = File.prototype.slice || File.prototype.mozSlice || File.prototype.webkitSlice;
-	    jQuery.ajax(url+"?query&incomplete=1", {
+	    jQuery.ajax(url+"?query&incomplete=1&incomplete_size="+file.size+"&incomplete_name="+file.name, {
 		success: function (data) {
 		    incompleteShocks(data);
 		},
@@ -281,10 +281,8 @@
 	    
 	    var incompleteShocks = function (data) {
 		var incomplete = null;
-		for (i=0;i<data.data.length;i++) {
-		    if ((file.size == data.data[i]["attributes"]["incomplete_size"]) && (file.name == data.data[i]["attributes"]["incomplete_name"])) {
-			incomplete = data.data[i];
-		    }
+		if (data.data.length) {
+		    incomplete = data.data[0];
 		}
 		
 		SHOCK.currentChunk = 0;

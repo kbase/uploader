@@ -357,7 +357,7 @@ The time between submission and a resulting data object in the workspace may tak
 		    var button = "";
 		    if (iT.inputs[i].isMetadata) {
 			button = "<div class='input-append'>";
-			metaDataChange = ' onchange="Retina.WidgetInstances.kbupload[1].metaDataValidated=false;document.getElementById(\'metadataValidationDiv\').className=\'alert\';document.getElementById(\'metadataValidationDiv\').innerHTML=\'validation pending\';"';
+			metaDataChange = ' onchange="Retina.WidgetInstances.kbupload[1].metaDataValidated=false;document.getElementById(\'metadataValidationDiv\').className=\'alert\';document.getElementById(\'metadataValidationDiv\').innerHTML=\'validation required\';"';
 		    }
 		    html += "<label>"+iT.inputs[i].label +'</label>'+button+'<select id="submissionField'+iT.inputs[i].aweVariable+'"'+metaDataChange+'>';
 		    if (iT.inputs[i].data) {
@@ -371,7 +371,7 @@ The time between submission and a resulting data object in the workspace may tak
 		    }
 		    html += "</select>";
 		    if (iT.inputs[i].isMetadata) {
-			html += '<button class="btn" onclick="Retina.WidgetInstances.kbupload[1].validateMetadata(document.getElementById(\'submissionField'+iT.inputs[i].aweVariable+'\'));">validate <b>'+templateName+'</b> metadata</button></div><div id="metadataValidationDiv" class="alert" style="width: 562px;">validation pending</div>';
+			html += '<button class="btn" onclick="Retina.WidgetInstances.kbupload[1].validateMetadata(document.getElementById(\'submissionField'+iT.inputs[i].aweVariable+'\'));">validate <b>'+templateName+'</b> metadata</button></div><div id="metadataValidationDiv" class="alert" style="width: 562px;">validation required</div>';
 		    }
 		}
 
@@ -547,7 +547,7 @@ The time between submission and a resulting data object in the workspace may tak
 	if (status) {
 	    widget.metaDataValidated = false;
 	    status.className = "alert";
-	    status.innerHTML = "<b>validation pending</b>";
+	    status.innerHTML = "<b>validation required</b>";
 	} else {
 	    widget.metaDataValidated = true;
 	}
@@ -1306,7 +1306,7 @@ The time between submission and a resulting data object in the workspace may tak
 	// there is no template, so the validation failed basic formatting checks
 	else {
 	    status.className = "alert alert-error";
-	    status.innerHTML = "<b>Your metadata did not validate</b><br>Your metdata has an invalid format.<br>Please use the template downloadable via the 'download Excel Template' button.";
+	    status.innerHTML = "<b>Your metadata did not validate</b><br>Your metadata has an invalid format.<br>Please use the template downloadable via the 'download Excel Template' button.";
 	    Retina.WidgetInstances.kbupload[1].metaDataValidated = false;
 	}
     };
