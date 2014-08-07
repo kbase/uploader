@@ -7,6 +7,6 @@ var RetinaConfig = {
 	   },
     "workspace": "https://kbase.us/services/ws/",
     "authURL": "https://kbase.us/services/authorization/Sessions/Login/",
-    "templates": [ "genome", "metagenome", "sequence", "GWAS_population","GWAS_population_variations", "GWAS_population_trait", "RNASeq_samples", "Variation_samples", "regulatory_network" ],
+    "templates": [ "genome", "metagenome", "sequence", "GWAS_population","GWAS_population_variations", "GWAS_population_trait", "RNASeq_samples", "Variation_samples", "regulatory_network", "expression_series", "FBA_model", "media", "phenotype_set" ],
     "allowedFileEndings": [ "fna", "fas", "fasta", "faa", "sff", "fastq", "fq", "txt", "xlsx", "vcf", "vcf.gz" ]
 };

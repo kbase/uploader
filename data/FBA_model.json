@@ -1,0 +1,100 @@
+{ "name": "FBA model from text files",
+  "interface": {
+      "intro": {
+	  "title": "FBA model from text files submission",
+	  "text": "FBA model upload requires two text files (with '.txt' extension): a reactions file and a compounds file.<br>The reactions text file describes the reactions and gene-protein-reaction relationships (GPR)<br>in the model, including the biomass reaction. Each row (except the header row) in the reactions file contains data for one reaction.<br><br>The first line of the reactions file is required and contains the following four headers (in any order):<br><br>- id : The ID of the reaction in the model. It must match with one of the IDs or aliases existing in the ModelSEED<br>- direction: > for forward, < for backward or = for reversible. Direction is relative to the direction stored in the ModelSEED<br>- compartment: Compartment in which the reaction is found (e.g. c0 for 0'th cytosol)<br>- gpr: Gene-protein-reaction relationship in Boolean form.<br>The gene IDs in the GPR must match the IDs in the genome object.<br><br>The following is an example reactions file (note: leave an empty space for gpr even if your reaction<br>does not have one):<br><br>id   direction   compartment   gpr<br>atp + h2o --> adp + pi + h  >    c0<br>rxn00001  =    c0    kb|g.0.peg.1<br>rxn00002  >    c0<br>rxn00003  <    c0    kb|g.0.peg.2 or kb|g.0.peg.3<br><br>The compounds file provides specifications on all compounds appearing in user-specified reactions.<br>The first line of the compound file is required and contains the following four headers (in any order):<br><br>- id : The ID of the compounds as they appear in any user specified reactions, including the biomass reaction.<br>- charge: Molecular charge of the compound at cellular conditions<br>- formula: Formula of the compound at cellular conditions<br>- name: Primary name of the compound<br>- aliases: '|' delimited list of aliases for the compound to aid in matching<br><br>The following is an example compounds file (note: leave an empty space for fields you do not complete).<br><br>id   charge   formula   name      aliases<br>h2o       0       H2O     Water   C00001|cpd00001",
+	  "excel": false,
+	  "json": false
+      },
+      "inputs": [
+	  { 
+	      "type": "text",
+	      "label": "Enter genome id",
+	      "help": null,
+	      "default": "",
+	      "data": null,
+	      "isMetadata": false,
+	      "aweVariable": "GENOME"
+	  },
+	  { 
+	      "type": "dropdown",
+	      "filetype": [ "txt" ],
+	      "label": "select model reactions text file",
+	      "help": null,
+	      "default": null,
+	      "data": null,
+	      "isMetadata": false,
+	      "aweVariable": "REACTIONSFILE"
+	  },
+	  { 
+	      "type": "dropdown",
+	      "filetype": [ "txt" ],
+	      "label": "select model compounds text file",
+	      "help": null,
+	      "default": null,
+	      "data": null,
+	      "isMetadata": false,
+	      "aweVariable": "COMPOUNDSFILE"
+	  },
+	  { 
+	      "type": "text",
+	      "label": "Enter biomass reaction id",
+	      "help": null,
+	      "default": "",
+	      "data": null,
+	      "isMetadata": false,
+	      "aweVariable": "BIOMASSID"
+	  },
+	  { 
+	      "type": "text",
+	      "label": "Enter model id",
+	      "help": null,
+	      "default": "",
+	      "data": null,
+	      "isMetadata": false,
+	      "aweVariable": "MODELID"
+	  }
+      ]
+  },
+  "awe": {
+      "tasks": [
+	  {
+	    "cmd": {
+		  "args": "@##GENOME## @##REACTIONSFILEFileName## @##BIOMASSID## --compoundfile @##COMPOUNDSFILEFileName## -w ##WORKSPACE## -m ##MODELID##",
+		  "description": "save data as FBA model typed object",
+		  "name": "fba-importfbamodel",
+	  "environ": {"private":{"KB_AUTH_TOKEN":"##TOKEN##"}}
+	      },
+	      "dependsOn": [ ],
+	      "inputs": {
+		  "##REACTIONSFILEFileName##": {
+		      "host": "##SHOCK##",
+		      "node": "##REACTIONSFILE##"
+		  },
+		  "##COMPOUNDSFILEFileName##": {
+		      "host": "##SHOCK##",
+		      "node": "##COMPOUNDSFILE##"
+		  },
+		  "##BIOMASSID#": {
+		      "host": "##SHOCK##",
+		      "node": "##BIOMASSID##"
+		  },
+		  "##GENOME##": {
+		      "host": "##SHOCK##",
+		      "node": "##GENOME##"
+		  },
+		  "##MODELID##": {
+		      "host": "##SHOCK##",
+		      "node": "##MODELID##"
+		  },
+		  "metadatafile": {
+		      "host": "##SHOCK##",
+		      "node": "##METADATA##"
+		  }
+	      },
+	      "taskid": "0",
+	      "totalwork": 1
+	  }
+      ]
+  }
+}
