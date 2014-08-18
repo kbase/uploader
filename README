@@ -125,7 +125,11 @@ A group may have a fields attribute, specifying the leaf nodes of the object. Th
 * mandatory - a boolean specifying whether this value must be given in a valid dataset
 * default - the default value of this field
 * type - a string indicating how to render an input element for this field in a dataset entry interface for this template
-* validation - an object with two attributes: type, a string that is either “none”, “regexp” or “cv”. If the value of the type attribute is “regexp”, the validation object must have a value attribute which is a regular expression, validating a data string for this field. If the value of the type attribute is “cv”, the validation object must have a value attribute whose value is the name of a cv in the cvs attribute of the template.
+* validation - an object with two attributes: type, a string that is either “none”, “expression” or “cv”. If the value of the type attribute is “expression”, the validation object must have a value attribute which is a regular expression, validating a data string for this field. Note that the backslash (\) character must be escaped with a bashlash. A field that must consist solely of digits could be checked like this:
+
+"validation": { "type": "expression", "value": "^\\d+$" }
+
+If the value of the type attribute is “cv”, the validation object must have a value attribute whose value is the name of a cv in the cvs attribute of the template.
 * index - an integer defining the order in which this field should appear
 
 A group must either have a fields attribute, a subgroups attribute or both to be part of a valid template.
