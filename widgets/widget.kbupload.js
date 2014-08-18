@@ -1067,7 +1067,7 @@ The time between submission and a resulting data object in the workspace may tak
 
 		    // add a reference cell for the parent group
 		    wb.setCell(wbNum, 0, 0, subgroup.parent);
-		    wb.setCell(wbNum, 0, 1, "name of the "+subgroup.parent+" of this "+subgroup.name);
+		    wb.setCell(wbNum, 0, 1, "index of the "+subgroup.parent+" of this "+subgroup.name);
 
 		    // start with offset 1 due to the reference cell
 		    var fieldNum = 1;
@@ -1418,72 +1418,77 @@ The time between submission and a resulting data object in the workspace may tak
 		if (typeof ws.data[0][0] === "undefined") {
 		    return;
 		}
-
+		
 		// check if cell A1 contains a group name
+		var isSub = 0;
 		if (groups.hasOwnProperty(ws.data[0][0].value)) {
-
-		    // check if the user was mistakenly using the comment field
-		    var rowIndex = 2;
-		    if (template.groups[l2g[ws.name]].fields[l2f[ws.name][ws.data[0][1].value]].description != ws.data[1][1].value) {
-			rowIndex = 1;
-		    }
-
-		    // this is a subgroup, iterate over the datasets
-		    for (var j=rowIndex;j<ws.data.length;j++) {
-			if (ws.data[j].length == 0) {
-			    break;
-			}
-
-			// create the current dataset
-			var ds = {};
-			for (var h=0;h<ws.data[0].length; h++) {
-			    if (typeof ws.data[0][h] === "undefined") {
-				return;
-			    }
-			    if (template.groups[l2g[ws.data[0][0].value]].fields[l2f[ws.name][ws.data[0][h].value]].type == "text") {
-				ds[ws.data[0][h].value] = (typeof ws.data[rowIndex] === "undefined" || typeof ws.data[rowIndex][h] === "undefined") ? null : ws.data[rowIndex][h].value + "";
-			    } else {
-				ds[ws.data[0][h].value] = (typeof ws.data[rowIndex] === "undefined" || typeof ws.data[rowIndex][h] === "undefined") ? null : ws.data[rowIndex][h].value;
-			    }
-			}
-
-			// push the dataset into the parent object
-			if (template.groups[l2g[ws.data[0][0].value]].subgroups[ws.name].type == "list") {
-			    parsedData[ws.data[0][0].value][ws.data[rowIndex][0].value][ws.name].push(ds);
-			} else {
-			    parsedData[ws.data[0][0].value][ws.data[rowIndex][0].value][ws.name] = ds;
-			}
-		    }
-		}
-		// this is a toplevel group
-		else {
+		    isSub = 1;
+		} else {
 		    parsedData[ws.name] = [];
+		}
 
-		    // check if the user was mistakenly using the comment field
-		    var rowIndex = 2;
-		    if (template.groups[l2g[ws.name]].fields[l2f[ws.name][ws.data[0][0].value]].description != ws.data[1][0].value) {
-			rowIndex = 1;
+		// check if the user was mistakenly using the comment field
+		var rowIndex = 2;
+		if (template.groups[l2g[ws.name]].fields[l2f[ws.name][ws.data[0][isSub].value]].description != ws.data[1][isSub].value) {
+		    rowIndex = 1;
+		}
+		
+		for (var j=rowIndex;j<ws.data.length;j++) {
+		    if (ws.data[j].length == 0) {
+			break;
 		    }
-
-		    for (var j=rowIndex;j<ws.data.length;j++) {
-			if (ws.data[j].length == 0) {
-			    break;
+		    var dataRow = {};
+		    for (var h=isSub;h<ws.data[0].length; h++) {
+			if (typeof ws.data[0][h] === "undefined") {
+			    return;
 			}
-			var dataRow = {};
-			for (var h=0;h<ws.data[0].length; h++) {
-			    if (typeof ws.data[0][h] === "undefined") {
-				return;
+			dataRow[l2f[ws.name][ws.data[0][h].value]] = (typeof ws.data[j] === "undefined" || typeof ws.data[j][h] === "undefined") ? null : ws.data[j][h].value+"";
+		    }
+		    
+		    // check if this group has subgroups
+		    if (template.groups[l2g[ws.name]].hasOwnProperty('subgroups')) {
+			for (var k in template.groups[l2g[ws.name]].subgroups) {
+			    if (template.groups[l2g[ws.name]].subgroups.hasOwnProperty(k)) {
+				if (template.groups[l2g[ws.name]].subgroups[k].hasOwnProperty('type') && template.groups[l2g[ws.name]].subgroups[k].type == 'list') {
+				    dataRow[k] = [];
+				} else {
+				    dataRow[k] = {};					
+				}
 			    }
-			    dataRow[ws.data[0][h].value] = (typeof ws.data[j] === "undefined" || typeof ws.data[j][h] === "undefined") ? null : ws.data[j][h].value+"";
 			}
+		    }
+		    
+		    if (isSub) {
+			// parent is not a list
+			if (!(template.groups.hasOwnProperty(l2g[ws.data[0][0].value]) && template.groups[l2g[ws.data[0][0].value]].hasOwnProperty('type') && template.groups[l2g[ws.data[0][0].value]].type == 'list')) {
+			    // push the dataset into the parent object
+			    if (template.groups[l2g[ws.data[0][0].value]].subgroups[ws.name].type == "list") {
+				parsedData[ws.data[0][0].value][l2g[ws.name]].push(dataRow);
+			    } else {
+				parsedData[ws.data[0][0].value][l2g[ws.name]] = dataRow;
+			    }
+			}
+			// parent is a list
+			else {
+			    // push the dataset into the parent object
+			    if (template.groups[l2g[ws.data[0][0].value]].subgroups[ws.name].type == "list") {
+				parsedData[ws.data[0][0].value][ws.data[j][0].value][l2g[ws.name]].push(dataRow);
+			    } else {
+				parsedData[ws.data[0][0].value][ws.data[j][0].value][l2g[ws.name]] = dataRow;
+			    }
+			}
+		    } else {
+			// push the data into the object list
 			parsedData[ws.name].push(dataRow);
 		    }
-		    if (!(template.groups.hasOwnProperty(l2g[ws.name]) && template.groups[l2g[ws.name]].hasOwnProperty('type') && template.groups[l2g[ws.name]].type == 'list')) {
-			parsedData[ws.name] = parsedData[ws.name][0];
-		    }
-		} 
+		}
+		if (!(template.groups.hasOwnProperty(l2g[ws.name]) && template.groups[l2g[ws.name]].hasOwnProperty('type') && template.groups[l2g[ws.name]].type == 'list') && ! isSub) {
+		    parsedData[ws.name] = parsedData[ws.name][0];
+		}
 	    }
-	   Retina.WidgetInstances.kbupload[1].jsonTemplates[xhr.id] = parsedData;
+	    console.log(parsedData);
+	    
+	    Retina.WidgetInstances.kbupload[1].jsonTemplates[xhr.id] = parsedData;
     	}
 
     	xhr.send();
