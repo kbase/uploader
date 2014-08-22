@@ -173,11 +173,18 @@
 		widget.pBarInner.setAttribute('style', 'width: 0%;');
 		pBar.appendChild(widget.pBarInner);
 		progress.appendChild(pBar);
+
+		// at this point we are actually starting the upload, tell log logging service about it
+		widget.log('start');
 		
 		// issue the SHOCK upload command on this file upload dialog, set the progress function callback
 		// to onProgress and the completion callback to uploadComplete (both functions within this widget
 		SHOCK.upload(widget.fu, null, null, widget.uploadComplete,widget.onProgress, widget.currentFile).then( function() {
 		    var widget = Retina.WidgetInstances.kbupload[1];
+
+		    // file upload of the current file is done, tell the logging service about it
+		    widget.log('done');
+
 		    widget.progress.style.display = "none";
 		    widget.currentFile++;
 		    widget.processFileUpload();
@@ -1486,11 +1493,25 @@ The time between submission and a resulting data object in the workspace may tak
 		    parsedData[ws.name] = parsedData[ws.name][0];
 		}
 	    }
-	    console.log(parsedData);
 	    
 	    Retina.WidgetInstances.kbupload[1].jsonTemplates[xhr.id] = parsedData;
     	}
 
     	xhr.send();
+    };
+    
+    widget.log = function (phase) {
+	var widget = Retina.WidgetInstances.kbupload[1];
+	var url = RetinaConfig.logURL;
+	var logData = { "application": "uploader",
+			"type": "upload",
+			"time": new Date().toLocaleString(),
+			"action": phase,
+			"file": widget.fu.files[widget.currentFile].name,
+			"size": widget.fu.files[widget.currentFile].size,
+			"user": widget.user };
+	jQuery.post( url, logData, function( result ) {
+	    // console.log( result );
+	}, "json");
     };
 })();
