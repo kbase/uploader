@@ -1502,16 +1502,18 @@ The time between submission and a resulting data object in the workspace may tak
     
     widget.log = function (phase) {
 	var widget = Retina.WidgetInstances.kbupload[1];
-	var url = RetinaConfig.logURL;
-	var logData = { "application": "uploader",
-			"type": "upload",
-			"time": new Date().toLocaleString(),
-			"action": phase,
-			"file": widget.fu.files[widget.currentFile].name,
-			"size": widget.fu.files[widget.currentFile].size,
-			"user": widget.user };
-	jQuery.post( url, logData, function( result ) {
-	    // console.log( result );
-	}, "json");
+	if (RetinaConfig.hasOwnProperty('logURL')) {
+	    var url = RetinaConfig.logURL;
+	    var logData = { "application": "uploader",
+			    "type": "upload",
+			    "time": new Date().toLocaleString(),
+			    "action": phase,
+			    "file": widget.fu.files[widget.currentFile].name,
+			    "size": widget.fu.files[widget.currentFile].size,
+			    "user": widget.user };
+	    jQuery.post( url, logData, function( result ) {
+		// console.log( result );
+	    }, "json");
+	}
     };
 })();
