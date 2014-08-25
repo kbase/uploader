@@ -1,4 +1,9 @@
-#!/usr/bin/env perl
+#!/kb/runtime/bin/perl
+use strict;
+use warnings;
+BEGIN {
+    push @INC, '/kb/deployment/lib';
+}
 use CGI;
 use JSON;
 
@@ -13,7 +18,6 @@ my $result;
 my $level = 6; # loglevel
 my $client_ip = $ENV{REMOTE_ADDR};
 my $call_id = time();
-my $logfile = 
 
 # read the incoming parameters
 my %params = ( "application" => $cgi->param('application'),
